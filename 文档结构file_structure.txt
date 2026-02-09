@@ -1,43 +1,43 @@
 
-ZYNQ7000系列板卡中存在有些没有S2,S3,s4,S5,S6教程的其中任何一个或者很多个，那么可能整合到了S1教程中。如果没有找到那我们正在积极的进行补充请耐心等待。
+Some ZYNQ7000 series boards may not have any one or more of the S2, S3, S4, S5, and S6 tutorials, as they may be integrated into the S1 tutorial. If you don't find them, we are actively adding them. Please wait patiently.
 
 ###########################################################################################################################
-AX7XXX板卡压缩包
+AX7XXX Board Package
    │
-   ├── RSTdocxs/                                          # RST 格式文档教程（GitHub上可以直接浏览）
+   ├── RSTdocxs/                                          # RST format document tutorial (can be browsed directly on GitHub)
    │   │
-   │   ├── 7Z010_S1_RSTdocument /                         # cource_S1_FPGA 教程
+   │   ├── 7Z010_S1_RSTdocument /                         # course_S1_FPGA tutorial
    │   │    │
-   │   │    ├── images/                                   # RST技术文档教程用到的图片
-   │   │    │      └── xx_media/                          # 对应每个章节内的图片   
+   │   │    ├── images/                                   # Images used in RST technical documentation tutorials
+   │   │    │      └── xx_media/                          # Images corresponding to each chapter   
    │   │    │
-   │   │    ├── 01_软件包说明和开发板检测_CN.rst          # 章节内容（01表示第一章节；_CN表示中文文档_EN表示英文文档）
+   │   │    ├── 01_Software_package_description_and_board_detection_CN.rst  # Chapter content (01 = first chapter; _CN = Chinese document, _EN = English document)
    │   │    └──  .... 
    │   │   
-   │   ├── 7Z010_S2_RSTdocument                           # cource_S2_Vitis 教程
-   │   ├── 7Z010_S3_RSTdocument                           # cource_S3_HLS 教程
-   │   ├── 7Z010_S4_RSTdocument                           # cource_S4_Linux 教程
-   │   ├── conf.py                                        # sphinx 工具配置文件
-   │   ├── index.rst                                      # sphinx 目录结构配置文件
-   │   └── requirements.txt                               # sphinx 版本配置文件
+   │   ├── 7Z010_S2_RSTdocument                           # course_S2_Vitis tutorial
+   │   ├── 7Z010_S3_RSTdocument                           # course_S3_HLS tutorial
+   │   ├── 7Z010_S4_RSTdocument                           # course_S4_Linux tutorial
+   │   ├── conf.py                                        # sphinx tool configuration file
+   │   ├── index.rst                                      # sphinx directory structure configuration file
+   │   └── requirements.txt                               # sphinx version configuration file
    │
-   ├── HTMLdocxs/                                         # html 格式文档教程（解压压缩包后可以在本地网页上进行浏览）   
+   ├── HTMLdocxs/                                         # HTML format document tutorial (can be browsed locally after decompression)   
    │   │
-   │   ├── AX7xxx教程.html                                # course_s1,course_s2,course_s3,course_s4 教程   
+   │   ├── AX7xxx_tutorial.html                           # course_s1, course_s2, course_s3, course_s4 tutorials   
    │   │       
    │   └──  ....    
    │ 
-   ├──  course_s1_fpga/                                   # S1_FPGA demo 实验工程
+   ├──  course_s1_fpga/                                   # S1_FPGA demo experimental projects
    │ 
-   ├──  course_s2_vitis/                                  # S2_Vitis demo 实验工程
+   ├──  course_s2_vitis/                                  # S2_Vitis demo experimental projects
    │ 
-   ├──  course_s3_hls/                                    # S3_HLS demo 实验工程 
+   ├──  course_s3_hls/                                    # S3_HLS demo experimental projects 
    │ 
-   ├──  course_s4_linux/                                  # S4_Linux demo 实验工程
+   ├──  course_s4_linux/                                  # S4_Linux demo experimental projects
    │ 
-   ├──  Hardware/                                         # 硬件资料
+   ├──  Hardware/                                         # Hardware information
    │   
-   └──  README/                                           # 板卡功能介绍
+   └──  README/                                           # Board function introduction
 
 
 There are some ZYNQ7000 series boards that do not have any one or more of the S2, S3, s4, S5, and S6 tutorials, so they may be integrated into the S1 tutorial. If you don't find it, we are actively adding it. Please wait patiently.

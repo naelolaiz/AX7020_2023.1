@@ -1,16 +1,16 @@
-.. ZYNQ 7000 开发平台 FPGA 教程 documentation master file, created by
+.. ZYNQ 7000 Development Platform FPGA Tutorial documentation master file, created by
    sphinx-quickstart on Tue Jan 30 18:14:13 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 
 
-ZYNQ 7000 开发平台
+ZYNQ 7000 Development Platform
 ======================================
 
 .. toctree::
    :maxdepth: 1
-   :caption: 公司简介
+   :caption: Company Introduction
 
    7020_S1_RSTdocument_CN/00_关于ALINX_CN
    7020_S1_RSTdocument_CN/00_序_CN
@@ -18,13 +18,13 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 3
-   :caption: 用户手册
+   :caption: User Manual
 
    AX7020UserManual_CN/AX7020UserManual
 
 .. toctree::
    :maxdepth: 2
-   :caption: AX7020型号板卡S1_FPGA教程
+   :caption: AX7020 S1_FPGA Tutorial
 
    7020_S1_RSTdocument_CN/01_ZYNQ简介_CN
    7020_S1_RSTdocument_CN/02_Vivado开发环境_CN
@@ -54,7 +54,7 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 2
-   :caption: AX7020型号板卡S2_Vitis教程
+   :caption: AX7020 S2_Vitis Tutorial
   
    7020_S2_RSTdocument_CN/00_前言_CN
    7020_S2_RSTdocument_CN/00_准备工程及注意事项_CN
@@ -96,7 +96,7 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 2
-   :caption: AX7020型号板卡S3_HLS教程
+   :caption: AX7020 S3_HLS Tutorial
 
    7020_S3_RSTdocument_CN/01_led_control_CN
    7020_S3_RSTdocument_CN/02_led_register_CN
@@ -110,7 +110,7 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 2
-   :caption: AX7020型号板卡S4_LINUX教程
+   :caption: AX7020 S4_Linux Tutorial
 
    7020_S4_RSTdocument_CN/01_安装虚拟机和Ubuntu系统_CN
    7020_S4_RSTdocument_CN/02_Ubuntu安装Linux版Vitis软件_CN
@@ -133,7 +133,7 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 2
-   :caption: AX7020型号板卡S5_PYNQ教程
+   :caption: AX7020 S5_PYNQ Tutorial
 
    7020_S5_RSTdocument_CN/01_PYNQ简介_CN
    7020_S5_RSTdocument_CN/02_PYNQ快速上手_CN
@@ -144,7 +144,7 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 2
-   :caption: AX7020型号板卡S6_LINUX驱动教程
+   :caption: AX7020 S6_Linux Driver Tutorial
 
    7020_S6_RSTdocument_CN/01_字符设备_CN
    7020_S6_RSTdocument_CN/02_字符设备的新写法_CN
@@ -174,7 +174,7 @@ ZYNQ 7000 开发平台
 
 .. toctree::
    :maxdepth: 1
-   :caption: Alinx版权
+   :caption: ALINX Copyright
 
    7020_S1_RSTdocument_CN/00_责任声明_CN
 
