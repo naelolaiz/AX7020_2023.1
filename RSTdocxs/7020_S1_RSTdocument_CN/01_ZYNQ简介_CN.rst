@@ -1,69 +1,72 @@
-ZYNQ简介
-==========
+ZYNQ Introduction
+=================
 
-Zynq系列的亮点在于FPGA里包含了完整的ARM处理子系统（PS），每一颗Zynq系列的处理器都包含了Cortex-A9处理器，整个处理器的搭建都以处理器为中心，而且处理器子系统中集成了内存控制器和大量的外设，
-使Cortex-A9的核在Zynq-7000中完全独立于可编程逻辑单元，也就是说如果暂时没有用到可编程逻辑单元部分（PL），ARM处理器的子系统也可以独立工作，这与以前的FPGA有本质区别，其是以处理器为中心的。
+The highlight of the Zynq series is that the FPGA contains a complete ARM processing subsystem (PS). Every Zynq series processor includes a Cortex-A9 processor, and the entire system is built around the processor. The processing subsystem integrates a memory controller and a large number of peripherals,
+allowing the Cortex-A9 core in the Zynq-7000 to operate completely independently of the programmable logic (PL). This means that if the programmable logic section (PL) is not being used, the ARM processor subsystem can still work independently. This is fundamentally different from previous FPGAs, as it is processor-centric.
 
-Zynq就是两大功能块，PS 部分和 PL部分，说白了，就是ARM的SOC部分，和FPGA部分。其中，PS集成了两个ARM
-Cortex™-A9处理器，AMBA®互连，内部存储器，外部存储器接口和外设。这些外设主要包括USB总线接口，以太网接口，SD/SDIO接口，I2C总线接口，CAN总线接口，UART接口，GPIO等。
+Zynq consists of two major functional blocks: the PS section and the PL section. Simply put, these are the ARM SoC section and the FPGA section. The PS integrates two ARM
+Cortex™-A9 processors, AMBA® interconnect, internal memory, external memory interfaces, and peripherals. These peripherals mainly include USB bus interfaces, Ethernet interfaces, SD/SDIO interfaces, I2C bus interfaces, CAN bus interfaces, UART interfaces, GPIO, etc.
 
 .. image:: images/01_media/image1.png
       
-ZYNQ芯片的总体框图
+Overall Block Diagram of the ZYNQ Chip
 
-PS: 处理系统 （Processing System) , 就是与FPGA无关的ARM的SOC的部分。
+PS: Processing System, the ARM SoC portion that is independent of the FPGA.
 
-PL: 可编程逻辑 (Progarmmable Logic), 就是FPGA部分。
+PL: Programmable Logic, the FPGA portion.
 
-*PL部分是与7系列一样的，在DS190文档中可以看到对应的7系列产品。*
+*The PL section is the same as the 7 series. The corresponding 7 series products can be found in the DS190 document.*
 
 .. image:: images/01_media/image2.png
       
-PS和PL互联技术 
----------------
+PS and PL Interconnection Technology
+-------------------------------------
 
-ZYNQ作为首款将高性能ARM
-Cortex-A9系列处理器与高性能FPGA在单芯片内紧密结合的产品，为了实现ARM处理器和FPGA之间的高速通信和数据交互，发挥ARM处理器和FPGA的性能优势，需要设计高效的片内高性能处理器与FPGA之间的互联通路。因此，如何设计高效的PL和PS数据交互通路是ZYNQ芯片设计的重中之重，也是产品设计的成败关键之一。本节，我们就将主要介绍PS和PL的连接，让用户了解PS和PL之间连接的技术。
+As the first product to tightly integrate a high-performance ARM
+Cortex-A9 series processor with a high-performance FPGA on a single chip, ZYNQ requires the design of high-speed communication and data exchange paths between the ARM processor and the FPGA to leverage the performance advantages of both the ARM processor and the FPGA. Therefore, designing an efficient data exchange path between PL and PS is of paramount importance in ZYNQ chip design and is one of the key factors in the success of a product design. In this section, we will mainly introduce the connection between PS and PL, allowing users to understand the interconnection technology between PS and PL.
 
-其实，在具体设计中我们往往不需要在连接这个地方做太多工作，我们加入IP核以后，系统会自动使用AXI接口将我们的IP核与处理器连接起来，我们只需要再做一点补充就可以了。
+In practice, we often do not need to do much work on the connection itself. After we add an IP core, the system will automatically use the AXI interface to connect our IP core to the processor, and we only need to make minor adjustments.
 
-AXI全称Advanced eXtensible
-Interface，是Xilinx从6系列的FPGA开始引入的一个接口协议，主要描述了主设备和从设备之间的数据传输方式。在ZYNQ中继续使用，版本是AXI4，所以我们经常会看到AXI4.0，ZYNQ内部设备都有AXI接口。其实AXI就是ARM公司提出的AMBA（Advanced Microcontroller Bus
-Architecture）的一个部分，是一种高性能、高带宽、低延迟的片内总线，也用来替代以前的AHB和APB总线。第一个版本的AXI（AXI3）包含在2003年发布的AMBA3.0中，AXI的第二个版本AXI（AXI4）包含在2010年发布的AMBA 4.0之中。
+AXI stands for Advanced eXtensible
+Interface. It is an interface protocol introduced by Xilinx starting from the 6 series FPGAs, which mainly describes the data transfer method between master and slave devices. It continues to be used in ZYNQ, with the version being AXI4, so we often see AXI4.0. All internal devices in ZYNQ have AXI interfaces. In fact, AXI is part of the AMBA (Advanced Microcontroller Bus
+Architecture) specification proposed by ARM. It is a high-performance, high-bandwidth, low-latency on-chip bus, also used to replace the previous AHB and APB buses. The first version of AXI (AXI3) was included in AMBA 3.0 released in 2003, and the second version of AXI (AXI4) was included in AMBA 4.0 released in 2010.
 
-AXI协议主要描述了主设备和从设备之间的数据传输方式，主设备和从设备之间通过握手信号建立连接。当从设备准备好接收数据时，会发出READY信号。当主设备的数据准备好时，会发出和维持VALID信号，表示数据有效。数据只有在VALID和READY信号都有效的时候才开始传输。当这两个信号持续保持有效，主设备会继续传输下一个数据。主设备可以撤销VALID信号，或者从设备撤销READY信号终止传输。AXI的协议如图，T2时，从设备的READY信号有效，T3时主设备的VILID信号有效，数据传输开始。
+The AXI protocol mainly describes the data transfer method between master and slave devices. The master and slave devices establish a connection through handshake signals. When the slave device is ready to receive data, it asserts the READY signal. When the master device's data is ready, it asserts and maintains the VALID signal, indicating that the data is valid. Data transfer only begins when both the VALID and READY signals are active. When both signals remain active, the master device continues to transfer the next data. The master device can deassert the VALID signal, or the slave device can deassert the READY signal to terminate the transfer. The AXI protocol is shown in the figure: at T2, the slave device's READY signal becomes active; at T3, the master device's VALID signal becomes active, and data transfer begins.
 
 .. image:: images/01_media/image3.png
       
-AXI握手时序图
+AXI Handshake Timing Diagram
 
-在ZYNQ中，支持AXI-Lite，AXI4和AXI-Stream三种总线，通过表5-1,我们可以看到这三中AXI接口的特性。
+In ZYNQ, three types of buses are supported: AXI-Lite, AXI4, and AXI-Stream. Through Table 5-1, we can see the characteristics of these three AXI interfaces.
 
 +----------------------+----------------------+------------------------+
-| 接口协议             | 特性                 | 应用场合               |
+| Interface Protocol   | Characteristics      | Application Scenarios  |
 +======================+======================+========================+
-| AXI4-Lite            | 地址/单数据传输      | 低速外设或控制         |
+| AXI4-Lite            | Address/single data  | Low-speed peripherals  |
+|                      | transfer             | or control             |
 +----------------------+----------------------+------------------------+
-| AXI4                 | 地址/突发数据传输    | 地址的批量传输         |
+| AXI4                 | Address/burst data   | Bulk address-based     |
+|                      | transfer             | transfers              |
 +----------------------+----------------------+------------------------+
-| AXI4-Stream          | 仅传输数据，突发传输 | 数据流和媒体流传输     |
+| AXI4-Stream          | Data only, burst     | Data stream and media  |
+|                      | transfer             | stream transfers       |
 +----------------------+----------------------+------------------------+
 
-AXI4-Lite：
+AXI4-Lite:
 
-具有轻量级，结构简单的特点，适合小批量数据、简单控制场合。不支持批量传输，读写时一次只能读写一个字（32bit）。主要用于访问一些低速外设和外设的控制。
+Lightweight with a simple structure, suitable for small batch data and simple control scenarios. It does not support burst transfers; only one word (32-bit) can be read or written at a time. It is mainly used for accessing low-speed peripherals and peripheral control.
 
-AXI4：
+AXI4:
 
-接口和AXI-Lite差不多，只是增加了一项功能就是批量传输，可以连续对一片地址进行一次性读写。也就是说具有数据读写的burst功能。
+The interface is similar to AXI-Lite, but with an added burst transfer capability, allowing continuous read/write operations to a range of addresses in one transaction. In other words, it has burst functionality for data read/write operations.
 
-上面两种均采用内存映射控制方式，即ARM将用户自定义IP编入某一地址进行访问，读写时就像在读写自己的片内RAM，编程也很方便，开发难度较低。代价就是资源占用过多，需要额外的读地址线、写地址线、读数据线、写数据线、写应答线这些信号线。
+The above two types both use memory-mapped control, meaning the ARM maps user-defined IPs to specific addresses for access. Reading and writing is like accessing on-chip RAM, which makes programming convenient and development relatively easy. The cost is higher resource usage, requiring additional read address lines, write address lines, read data lines, write data lines, and write response lines.
 
-AXI4-Stream：
+AXI4-Stream:
 
-这是一种连续流接口，不需要地址线（很像FIFO，一直读或一直写就行）。对于这类IP，ARM不能通过上面的内存映射方式控制（FIFO根本没有地址的概念），必须有一个转换装置，例如AXI-DMA模块来实现内存映射到流式接口的转换。AXI-Stream适用的场合有很多：视频流处理；通信协议转换；数字信号处理；无线通信等。其本质都是针对数值流构建的数据通路，从信源（例如ARM内存、DMA、无线接收前端等）到信宿（例如HDMI显示器、高速AD音频输出，等）构建起连续的数据流。这种接口适合做实时信号处理。
+This is a continuous streaming interface that does not require address lines (much like a FIFO — you just keep reading or writing). For this type of IP, the ARM cannot use the memory-mapped approach described above (a FIFO has no concept of addresses). A conversion device is needed, such as an AXI-DMA module, to convert between memory-mapped and streaming interfaces. AXI-Stream is suitable for many scenarios: video stream processing, communication protocol conversion, digital signal processing, wireless communication, etc. Essentially, it builds data paths for numerical streams, from source (e.g., ARM memory, DMA, wireless receiver front-end, etc.) to sink (e.g., HDMI display, high-speed AD audio output, etc.), creating a continuous data flow. This interface is suitable for real-time signal processing.
 
-AXI4和AXI4-Lite接口包含5个不同的通道：
+AXI4 and AXI4-Lite interfaces contain 5 different channels:
 
 -  Read Address Channel
 
@@ -75,60 +78,60 @@ AXI4和AXI4-Lite接口包含5个不同的通道：
 
 -  Write Response Channel
 
-其中每个通道都是一个独立的AXI握手协议。下面两个图分别显示了读和写的模型：
+Each channel is an independent AXI handshake protocol. The following two figures show the read and write models respectively:
 
 .. image:: images/01_media/image4.png
       
-AXI读数据通道
+AXI Read Data Channel
 
 .. image:: images/01_media/image5.png
       
-AXI写数据通道
+AXI Write Data Channel
 
-在ZYNQ芯片内部用硬件实现了AXI总线协议，包括9个物理接口，分别为AXI-GP0~AXI-GP3，AXI-HP0~AXI-HP3，AXI-ACP接口。
+Inside the ZYNQ chip, the AXI bus protocol is implemented in hardware, including 9 physical interfaces: AXI-GP0 to AXI-GP3, AXI-HP0 to AXI-HP3, and the AXI-ACP interface.
 
-AXI_ACP接口，是ARM多核架构下定义的一种接口，中文翻译为加速器一致性端口，用来管理DMA之类的不带缓存的AXI外设，PS端是Slave接口。
+The AXI_ACP interface is an interface defined under the ARM multi-core architecture, known as the Accelerator Coherency Port, used to manage non-cached AXI peripherals such as DMA. The PS side is a Slave interface.
 
-AXI_HP接口，是高性能/带宽的AXI3.0标准的接口，总共有四个，PL模块作为主设备连接。主要用于PL访问PS上的存储器（DDR和On-Chip RAM）
+The AXI_HP interface is a high-performance/high-bandwidth AXI 3.0 standard interface. There are four in total, with PL modules connecting as master devices. It is mainly used for PL to access PS storage (DDR and On-Chip RAM).
 
-AXI_GP接口，是通用的AXI接口，总共有四个，包括两个32位主设备接口和两个32位从设备接口。
+The AXI_GP interface is a general-purpose AXI interface. There are four in total, including two 32-bit master device interfaces and two 32-bit slave device interfaces.
 
 .. image:: images/01_media/image6.png
       
-可以看到，只有两个AXI-GP是Master Port，即主机接口，其余7个口都是Slave
-Port（从机接口）。主机接口具有发起读写的权限，ARM可以利用两个AXI-GP主机接口主动访问PL逻辑，其实就是把PL映射到某个地址，读写PL寄存器如同在读写自己的存储器。其余从机接口就属于被动接口，接受来自PL的读写，逆来顺受。
+As can be seen, only two AXI-GP ports are Master Ports (master interfaces), while the remaining 7 ports are Slave
+Ports (slave interfaces). Master interfaces have the authority to initiate read/write operations. The ARM can use the two AXI-GP master interfaces to actively access PL logic, essentially mapping the PL to certain addresses and reading/writing PL registers as if accessing its own memory. The remaining slave interfaces are passive interfaces that accept read/write operations from the PL.
 
-另外这9个AXI接口性能也是不同的。GP接口是32位的低性能接口，理论带宽600MB/s，而HP和ACP接口为64位高性能接口，理论带宽1200MB/s。有人会问，为什么高性能接口不做成主机接口呢？这样可以由ARM发起高速数据传输。答案是高性能接口根本不需要ARM
-CPU来负责数据搬移，真正的搬运工是位于PL中的DMA控制器。
+Additionally, these 9 AXI interfaces differ in performance. The GP interfaces are 32-bit low-performance interfaces with a theoretical bandwidth of 600MB/s, while the HP and ACP interfaces are 64-bit high-performance interfaces with a theoretical bandwidth of 1200MB/s. One might ask, why aren't the high-performance interfaces designed as master interfaces so that ARM can initiate high-speed data transfers? The answer is that high-performance interfaces do not need the ARM
+CPU to handle data movement — the real workhorse is the DMA controller located in the PL.
 
-位于PS端的ARM直接有硬件支持AXI接口，而PL则需要使用逻辑实现相应的AXI协议。Xilinx在Vivado开发环境里提供现成IP如AXI-DMA，AXI-GPIO，AXI-Dataover,
-AXI-Stream都实现了相应的接口，使用时直接从Vivado的IP列表中添加即可实现相应的功能。下图为Vivado下的各种DMA
-IP：
+The ARM on the PS side has direct hardware support for AXI interfaces, while the PL needs to implement the corresponding AXI protocol using logic. Xilinx provides ready-made IPs in the Vivado development environment, such as AXI-DMA, AXI-GPIO, AXI-Datamover,
+and AXI-Stream, all of which implement the corresponding interfaces. They can be used by simply adding them from the IP list in Vivado to achieve the desired functionality. The figure below shows various DMA
+IPs in Vivado:
 
 .. image:: images/01_media/image7.png
       
-下面为几个常用的AXI接口IP的功能介绍：
+Below is a functional introduction to several commonly used AXI interface IPs:
 
-AXI-DMA：实现从PS内存到PL高速传输高速通道AXI-HP<---->AXI-Stream的转换
+AXI-DMA: Implements the conversion from PS memory to PL high-speed transfer channel AXI-HP<---->AXI-Stream
 
-AXI-FIFO-MM2S：实现从PS内存到PL通用传输通道AXI-GP<----->AXI-Stream的转换
+AXI-FIFO-MM2S: Implements the conversion from PS memory to PL general-purpose transfer channel AXI-GP<----->AXI-Stream
 
-AXI-Datamover：实现从PS内存到PL高速传输高速通道AXI-HP<---->AXI-Stream的转换，只不过这次是完全由PL控制的，PS是完全被动的。
+AXI-Datamover: Implements the conversion from PS memory to PL high-speed transfer channel AXI-HP<---->AXI-Stream, except this time it is entirely controlled by the PL, and the PS is completely passive.
 
-AXI-VDMA：实现从PS内存到PL高速传输高速通道AXI-HP<---->AXI-Stream的转换，只不过是专门针对视频、图像等二维数据的。
+AXI-VDMA: Implements the conversion from PS memory to PL high-speed transfer channel AXI-HP<---->AXI-Stream, specifically designed for two-dimensional data such as video and images.
 
-AXI-CDMA：这个是由PL完成的将数据从内存的一个位置搬移到另一个位置，无需CPU来插手。
+AXI-CDMA: This is used by the PL to move data from one memory location to another without CPU intervention.
 
-关于如何使用这些IP，我们会在后面的章节中举例讲到。有时，用户需要开发自己定义的IP同PS进行通信，这时可以利用向导生成对应的IP。用户自定义IP核可以拥有AXI4-Lite，AXI4，AXI-Stream，PLB和FSL这些接口。后两种由于ARM这一端不支持，所以不用。
+We will provide examples of how to use these IPs in later chapters. Sometimes, users need to develop their own custom IPs to communicate with the PS. In this case, a wizard can be used to generate the corresponding IP. User-defined IP cores can have AXI4-Lite, AXI4, AXI-Stream, PLB, and FSL interfaces. The latter two are not used because the ARM side does not support them.
 
-有了上面的这些官方IP和向导生成的自定义IP，用户其实不需要对AXI时序了解太多（除非确实遇到问题），因为Xilinx已经将和AXI时序有关的细节都封装起来，用户只需要关注自己的逻辑实现即可。
+With these official IPs and wizard-generated custom IPs, users do not need to understand AXI timing in great detail (unless they actually encounter issues), because Xilinx has encapsulated all AXI timing-related details, and users only need to focus on their own logic implementation.
 
-AXI协议严格的讲是一个点对点的主从接口协议，当多个外设需要互相交互数据时，我们需要加入一个AXI
-Interconnect模块，也就是AXI互联矩阵，作用是提供将一个或多个AXI主设备连接到一个或多个AXI从设备的一种交换机制（有点类似于交换机里面的交换矩阵）。
+Strictly speaking, the AXI protocol is a point-to-point master-slave interface protocol. When multiple peripherals need to exchange data with each other, we need to add an AXI
+Interconnect module, which is an AXI interconnect matrix that provides a switching mechanism to connect one or more AXI master devices to one or more AXI slave devices (somewhat similar to the switching matrix inside a network switch).
 
-这个AXI Interconnect IP核最多可以支持16个主设备、16个从设备，如果需要更多的接口，可以多加入几个IP核。
+This AXI Interconnect IP core can support up to 16 master devices and 16 slave devices. If more interfaces are needed, additional IP cores can be added.
 
-AXI Interconnect基本连接模式有以下几种：
+The basic connection modes of AXI Interconnect are as follows:
 
 -  N-to-1 Interconnect
 
@@ -140,90 +143,90 @@ AXI Interconnect基本连接模式有以下几种：
 
 .. image:: images/01_media/image8.png
       
-多对一的情况
+Many-to-One Scenario
 
 .. image:: images/01_media/image9.png
       
-一对多的情况
+One-to-Many Scenario
 
 .. image:: images/01_media/image10.png
       
-多对多读写地址通道
+Many-to-Many Read/Write Address Channels
 
 .. image:: images/01_media/image11.png
       
-多对多读写数据通道
+Many-to-Many Read/Write Data Channels
 
-ZYNQ内部的AXI接口设备就是通过互联矩阵的的方式互联起来的，既保证了传输数据的高效性，又保证了连接的灵活性。Xilinx在Vivado里我们提供了实现这种互联矩阵的IP核axi_interconnect，我们只要调用就可以。
+The AXI interface devices inside ZYNQ are interconnected through the interconnect matrix approach, which ensures both efficient data transfer and flexible connectivity. Xilinx provides the axi_interconnect IP core in Vivado to implement this interconnect matrix, and we can simply instantiate it.
 
 .. image:: images/01_media/image12.png
       
 AXI Interconnect IP
 
-ZYNQ芯片开发流程的简介
-----------------------
+Introduction to ZYNQ Chip Development Flow
+-------------------------------------------
 
-由于ZYNQ将CPU与FPGA集成在了一起，开发人员既需要设计ARM的操作系统应用程序和设备的驱动程序，又需要设计FPGA部分的硬件逻辑设计。开发中既要了解Linux操作系统，系统的构架，也需要搭建一个FPGA和ARM系统之间的硬件设计平台。所以ZYNQ的开发是需要软件人员和硬件硬件人员协同设计并开发的。这既是ZYNQ开发中所谓的"软硬件协同设计”。
+Since ZYNQ integrates the CPU and FPGA together, developers need to design ARM operating system applications and device drivers, as well as the FPGA hardware logic design. Development requires understanding the Linux operating system and system architecture, as well as building a hardware design platform between the FPGA and ARM systems. Therefore, ZYNQ development requires collaboration between software engineers and hardware engineers. This is what is referred to as "hardware-software co-design" in ZYNQ development.
 
-ZYNQ系统的硬件系统和软件系统的设计和开发需要用到一下的开发环境和调试工具：
+The design and development of ZYNQ hardware and software systems require the following development environments and debugging tools:
 
-Xilinx Vivado。
+Xilinx Vivado.
 
-Vivado设计套件实现FPGA部分的设计和开发，管脚和时序的约束，编译和仿真，实现RTL到比特流的设计流程。Vivado并不是ISE设计套件的简单升级，而是一个全新的设计套件。它替代了ISE设计套件的所有重要工具，比如Project Navigator、Xilinx Synthesis Technology、Implementation、CORE Generator、Constraint、Simulator、Chipscope Analyzer、FPGA Editor等设计工具。
+The Vivado Design Suite implements the design and development of the FPGA portion, including pin and timing constraints, compilation and simulation, and the design flow from RTL to bitstream. Vivado is not simply an upgrade of the ISE Design Suite, but a completely new design suite. It replaces all the important tools of the ISE Design Suite, such as Project Navigator, Xilinx Synthesis Technology, Implementation, CORE Generator, Constraint, Simulator, Chipscope Analyzer, FPGA Editor, and other design tools.
 
-Xilinx SDK（Software Development Kit），
-SDK是Xilinx软件开发套件(SDK),在Vivado硬件系统的基础上，系统会自动配置一些重要参数，其中包括工具和库路径、编译器选项、JTAG和闪存设置，调试器连接已经裸机板支持包(BSP)。SDK也为所有支持的Xilinx
-IP硬核提供了驱动程序。SDK支持IP硬核（FPGA上）和处理器软件协同调试，我们可以使用高级C或C++语言来开发和调试ARM和FPGA系统，测试硬件系统是否工作正常。SDK软件也是Vivado软件自带的，无需单独安装。
+Xilinx SDK (Software Development Kit).
+SDK is the Xilinx Software Development Kit (SDK). Based on the Vivado hardware system, the system automatically configures some important parameters, including tool and library paths, compiler options, JTAG and flash settings, debugger connections, and bare-metal board support packages (BSP). SDK also provides drivers for all supported Xilinx
+IP hard cores. SDK supports co-debugging of IP hard cores (on the FPGA) and processor software. We can use high-level C or C++ languages to develop and debug ARM and FPGA systems and test whether the hardware system works properly. The SDK software is also included with the Vivado software and does not need to be installed separately.
 
-ZYNQ的开发也是先硬件后软件的方法。具体流程如下：
+ZYNQ development follows a hardware-first, software-second approach. The specific flow is as follows:
 
-1) 在Vivado上新建工程，增加一个嵌入式的源文件。
+1) Create a new project in Vivado and add an embedded source file.
 
-2) 在Vivado里添加和配置PS和PL部分基本的外设，或需要添加自定义的外设。
+2) Add and configure basic peripherals for the PS and PL sections in Vivado, or add custom peripherals as needed.
 
-3) 在Vivado里生成顶层HDL文件，并添加约束文件。再编译生成比特流文件（\*.bit）。
+3) Generate the top-level HDL file in Vivado, add constraint files, and then compile to generate the bitstream file (\*.bit).
 
-4) 导出硬件信息到SDK软件开发环境，在SDK环境里可以编写一些调试软件验证硬件和软件，结合比特流文件单独调试ZYNQ系统。
+4) Export the hardware information to the SDK software development environment. In the SDK environment, you can write debugging software to verify hardware and software, and use the bitstream file to independently debug the ZYNQ system.
 
-5) 在SDK里生成FSBL文件。
+5) Generate the FSBL file in SDK.
 
-6) 在VMware虚拟机里生成u-boot.elf、 bootloader 镜像。
+6) Generate u-boot.elf and bootloader images in a VMware virtual machine.
 
-7) 在SDK里通过FSBL文件,比特流文件system.bit和u-boot.elf文件生成一个BOOT.bin文件。
+7) In SDK, generate a BOOT.bin file using the FSBL file, the bitstream file system.bit, and the u-boot.elf file.
 
-8) 在VMware里生成Ubuntu的内核镜像文件Zimage和Ubuntu的根文件系统。另外还需要要对FPGA自定义的IP编写驱动。
+8) Generate the Ubuntu kernel image file Zimage and the Ubuntu root file system in VMware. Additionally, drivers need to be written for FPGA custom IPs.
 
-9) 把BOOT、内核、设备树、根文件系统文件放入到SD卡中，启动开发板电源，Linux操作系统会从SD卡里启动。
+9) Place the BOOT, kernel, device tree, and root file system files onto the SD card, power on the development board, and the Linux operating system will boot from the SD card.
 
-以上是典型的ZYNQ开发流程，但是ZYNQ也可以单独做为ARM来使用，这样就不需要关系PL端资源，和传统的ARM开发没有太大区别。ZYNQ也可以只使用PL部分，但是PL的配置还是要PS来完成的，就是无法通过传统的固化Flash方式把只要PL的固件固化起来。
+The above is a typical ZYNQ development flow, but ZYNQ can also be used solely as an ARM, in which case there is no need to worry about PL-side resources, and it is not much different from traditional ARM development. ZYNQ can also use only the PL section, but the PL configuration still needs to be done by the PS, meaning it is not possible to program PL-only firmware through the traditional Flash programming method.
 
-学习ZYNQ要具备哪些技能
-----------------------
+Skills Required for Learning ZYNQ
+----------------------------------
 
-学习ZYNQ比学习FPGA、MCU、ARM等传统工具开发要求更高，想学好ZYNQ也不是一蹴而就的事情。
+Learning ZYNQ is more demanding than learning traditional development tools such as FPGA, MCU, ARM, etc. Mastering ZYNQ is not something that can be achieved overnight.
 
-软件开发人员
-~~~~~~~~~~~~
+Software Developers
+~~~~~~~~~~~~~~~~~~~
 
--  计算机组成原理
+-  Computer Architecture
 
--  C、C++语言
+-  C, C++ Languages
 
--  计算机操作系统
+-  Computer Operating Systems
 
--  tcl脚本
+-  Tcl Scripting
 
--  良好的英语阅读基础
+-  Good English Reading Skills
 
-逻辑开发人员
-~~~~~~~~~~~~
+Logic Developers
+~~~~~~~~~~~~~~~~
 
--  计算机组成原理
+-  Computer Architecture
 
--  C语言
+-  C Language
 
--  数字电路基础
+-  Digital Circuit Fundamentals
 
--  Verilog、VHDL语言
+-  Verilog, VHDL Languages
 
--  良好的英语阅读基础
+-  Good English Reading Skills
