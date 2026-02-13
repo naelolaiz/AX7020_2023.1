@@ -1,49 +1,48 @@
-按键消抖实验
-==============
+Key Debounce Experiment
+========================
 
-**实验Vivado工程为“key_debounce”。**
+**The experiment Vivado project is "key_debounce".**
 
-本文主要讲解按键消抖原理及程序编写，程序实现按键按下后数字加1，并在led出来，通过vivado软件编译调试。
+This article mainly explains the principle of key debouncing and program development. The program increments a number by 1 when a key is pressed, displays the result on LEDs, and is compiled and debugged using Vivado software.
 
-实验原理
---------
+Experiment Principle
+--------------------
 
-按键作为基本的人机输入接口，在很多电子设计中都能见到，由于机械特性，在按键按下或松开的时候，按键输入值是有抖动的，无论按下去是多平稳，都难以消除抖动，按键消抖方式有很多，本实验主要是通过FPGA计时来消抖。实验中设计了一个计数器，当按键输入有变化时，计时器清零，否则就累加，直到加到一个预定值（例如10ms），就认为按键稳定，输出按键值，这样就得到以后没有抖动的按键值。由于在很多地方需要用到按键下降沿或上升沿的检测，按键消抖模块直接集成了上升沿和下降沿检测的功能。
+As a basic human-machine input interface, keys can be found in many electronic designs. Due to mechanical characteristics, when a key is pressed or released, the key input value will bounce. No matter how steadily the key is pressed, it is difficult to eliminate the bouncing. There are many ways to debounce keys, and this experiment mainly uses FPGA timing for debouncing. In the experiment, a counter is designed. When the key input changes, the counter is cleared to zero; otherwise, it accumulates until it reaches a preset value (e.g., 10ms), at which point the key is considered stable and the key value is output, thus obtaining a debounced key value. Since rising edge and falling edge detection of keys is needed in many places, the key debounce module directly integrates rising edge and falling edge detection functionality.
 
 .. image:: images/11_media/image1.png
 
-程序设计
---------
+Program Design
+---------------
 
-如下图所示，通过按键消抖后，在按键按下时，十进制计数器加1，通过LED灯显示出来。
+As shown in the figure below, after key debouncing, when a key is pressed, a decimal counter increments by 1, and the result is displayed through LEDs.
 
 .. image:: images/11_media/image2.png
 
-按键消抖部分的原理在上节已经讲过，按键消抖部分代码写的非常精炼，阅读起来稍显费解，建议结合仿真波形去读代码。在提供的例程文件下的src文件夹中同时提供了仿真文件key_debounce_tb.v，可以通过添加仿真文件来进行仿真观察代码中信号的变化。
+The principle of the key debounce part has been explained in the previous section. The key debounce code is written very concisely, which may be slightly difficult to understand when reading. It is recommended to read the code in conjunction with simulation waveforms. In the src folder under the provided example files, a simulation file key_debounce_tb.v is also provided. You can add the simulation file to perform simulation and observe signal changes in the code.
 
 +---------------+--------+---------------------------------------------+
-| 信号名称      | 方向   | 说明                                        |
+| Signal Name   | Dir    | Description                                 |
 +===============+========+=============================================+
-| clk           | in     | 时钟输入                                    |
+| clk           | in     | Clock input                                 |
 +---------------+--------+---------------------------------------------+
-| rst_n         | in     | 异步复位输入，低复位                        |
+| rst_n         | in     | Async reset input, active low               |
 +---------------+--------+---------------------------------------------+
-| button_in     | in     | 按键输入                                    |
+| button_in     | in     | Key input                                   |
 +---------------+--------+---------------------------------------------+
-| b             | out    | 消抖后按键上升沿，高有效，1个时钟周期       |
-| utton_posedge |        |                                             |
+| b             | out    | Debounced key rising edge, active high,     |
+| utton_posedge |        | 1 clock cycle                               |
 +---------------+--------+---------------------------------------------+
-| b             | out    | 消抖后按键下升沿，高有效，1个时钟周期       |
-| utton_negedge |        |                                             |
+| b             | out    | Debounced key falling edge, active high,    |
+| utton_negedge |        | 1 clock cycle                               |
 +---------------+--------+---------------------------------------------+
-| button_out    | out    | 消抖后按键输出                              |
+| button_out    | out    | Debounced key output                        |
 +---------------+--------+---------------------------------------------+
 
-按键消抖模块（ax_debounce）端口
+Key debounce module (ax_debounce) ports
 
-LED显示部分在本章不做说明，就例程中按键消抖模块“ax_debounce”模块做一些讲解，模块中通过了两级D触发器来寄存键值，只有当按键值稳定时才将按键值输出。我们可以看到在assign赋值语句中有一条“assign
-a_reset=（DFF1 ^ DFF2）”，学过数字电路的应该都知道“ ^ ”是异或运算符，运算符两边相同运算结果为0，
-不同运算结果为1。在程序中DFF1和DFF2比较运算后的值通过“assign”赋给“a_reset”，表示比较锁存键值的前后两级寄存器的值是否一致，只有前后两级寄存器的值一致，也就是a_reset的值为0时，才表示当前锁存的键值没有变化。当计数器累加到“TIMER_MAX_VAL”，表示锁存的键值已经稳定可以输出。另外在模块中我们可以看到“{.......}”符号，要注意这可不是大括号，这表示位拼接运算符，其作用是将运算符内的两位，或是多位信号拼接在一起，具体用法请参考例程。
+The LED display part will not be explained in this chapter. Here we will provide some explanation of the key debounce module "ax_debounce" in the example. The module uses two-stage D flip-flops to latch the key value, and the key value is only output when it is stable. We can see in the assign statement that there is an "assign
+a_reset = (DFF1 ^ DFF2)". Anyone who has studied digital circuits should know that "^" is the XOR operator, where the result is 0 when both sides are the same, and 1 when they are different. In the program, the result of the comparison between DFF1 and DFF2 is assigned to "a_reset" via "assign", which checks whether the values of the two consecutive stages of registers that latch the key value are consistent. Only when the values of both stages are consistent, i.e., when the value of a_reset is 0, does it indicate that the currently latched key value has not changed. When the counter accumulates to "TIMER_MAX_VAL", it indicates that the latched key value has been stable and can be output. Additionally, in the module we can see the "{.......}" symbol. Note that this is not just curly braces -- it represents the bit concatenation operator, which concatenates two or more signals together. Please refer to the example for specific usage.
 
 .. code:: verilog
 
@@ -133,26 +132,26 @@ a_reset=（DFF1 ^ DFF2）”，学过数字电路的应该都知道“ ^ ”是�
  end
  endmodule
 
-最后，程序中需要说明的是“button_posedge”和“button_negedge”两个输出信号，这是一种常用的上升沿和下降沿的采集方法，其描述的RTL视图如下：
+Finally, what needs to be explained in the program are the two output signals "button_posedge" and "button_negedge". This is a commonly used method for capturing rising and falling edges. The RTL view it describes is as follows:
 
 .. image:: images/11_media/image3.png
       
-当然还有其他的边沿检测电路的描述方法，但是其基本原理都是在逻辑时序电路里先将需要检测的信号作为输入非阻塞赋值给一个自定义寄存器，通过判断前后两级寄存器的值来判断是上升沿或是下降沿，由0->1 变化是上升沿，由1 -> 0变化是下降沿；
+Of course, there are other methods for describing edge detection circuits, but the basic principle is the same: in a sequential logic circuit, the signal to be detected is first assigned as input to a custom register using non-blocking assignment, and then by comparing the values of two consecutive stages of registers, it is determined whether it is a rising edge or falling edge. A change from 0 to 1 is a rising edge, and a change from 1 to 0 is a falling edge.
 
-仿真
-----
+Simulation
+----------
 
-这里我们添加了一个激励程序key_debounce_tb.v文件，用来仿真按键key的输入。
+Here we have added a stimulus program file key_debounce_tb.v to simulate the key input.
 
-仿真的结果如下，我们看到按键一共有5次被按下，但是因为前面4次按键按下的低电平保持时间都小于20ms,这4次的按下都被程序判断为抖动，只有第5次的按键按下时间大于了20ms,才判断为按键有按下，这时LED灯的状态有了变化。
+The simulation results are as follows. We can see that the key was pressed a total of 5 times, but because the low-level hold time of the first 4 key presses was less than 20ms, these 4 presses were determined by the program to be bouncing. Only when the 5th key press duration exceeded 20ms was it recognized as a valid key press, and at that point the LED status changed.
 
 .. image:: images/11_media/image4.png
       
-同样按键松开后，也会判断高电平的保持时间是否大于20ms,因为前面4次的高电平都低于20ms,程序都把它们当做按键的抖动，只有第5次的高电平保持时间大于20ms,q_add的信号才有变化。
+Similarly, after the key is released, the program also checks whether the high-level hold time exceeds 20ms. Because the first 4 high-level periods were all less than 20ms, the program treated them as key bouncing. Only when the 5th high-level hold time exceeded 20ms did the q_add signal change.
 
 .. image:: images/11_media/image5.png
       
-实验现象
---------
+Experiment Result
+-----------------
 
-开发板上电后下载程序，按下“PL KEY2”按键，可以看到4个LED会变化，对应二进制数据，按一次加一，如果不经过消抖，是无法实现按一次加一的。
+After powering on the development board and downloading the program, press the "PL KEY2" button, and you can see the 4 LEDs change, corresponding to binary data, incrementing by one with each press. Without debouncing, it would be impossible to achieve incrementing by one per press.
