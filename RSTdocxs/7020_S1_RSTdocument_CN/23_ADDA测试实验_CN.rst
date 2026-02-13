@@ -1,235 +1,234 @@
-ADDA测试实验
-==============
+ADDA Test Experiment
+====================
 
-**实验Vivado工程为“an108_adda_hdmi_test”。**
+**The Vivado project for this experiment is "an108_adda_hdmi_test".**
 
-本实验练习使用ADC和DAC，实验中使用的ADDA模块型号为AN108，ADC最大采样率32Mhz，精度为8位，DAC最大采样率125Mhz，精度为8位。实验中用DAC输出正弦波，然后使用ADC采集并把波形在HDMI显示器显示。
+This experiment practices using ADC and DAC. The ADDA module used in this experiment is model AN108, with a maximum ADC sampling rate of 32MHz and 8-bit precision, and a maximum DAC sampling rate of 125MHz with 8-bit precision. In this experiment, the DAC outputs a sine wave, which is then sampled by the ADC and displayed on an HDMI monitor.
 
 .. image:: images/23_media/image1.png
       
-ADDA模块
+ADDA Module
 
 .. image:: images/23_media/image2.png
       
-实验预期结果
+Expected Experiment Result
 
-硬件介绍
---------
+Hardware Introduction
+---------------------
 
 .. image:: images/23_media/image3.png
       
-数模转换（DA）电路
-~~~~~~~~~~~~~~~~~~~
+Digital-to-Analog Conversion (DA) Circuit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-如硬件结构图所示，DA电路由高速DA芯片、7阶巴特沃斯低通滤波器、幅度调节电路和信号输出接口组成。
+As shown in the hardware block diagram, the DA circuit consists of a high-speed DA chip, a 7th-order Butterworth low-pass filter, an amplitude adjustment circuit, and a signal output interface.
 
-我们使用的高速DA芯片是AD公司推出的AD9708。AD9708是8位，125MSPS的DA转换芯片，内置1.2V参考电压，差分电流输出。芯片内部结构图如下图所示
+The high-speed DA chip we use is the AD9708 from Analog Devices. The AD9708 is an 8-bit, 125MSPS DA conversion chip with a built-in 1.2V reference voltage and differential current output. The internal block diagram of the chip is shown below.
 
 .. image:: images/23_media/image4.png
       
-AD9708芯片差分输出以后，为了防止噪声干扰，电路中接入了7阶巴特沃斯低通滤波器，带宽为40MHz，频率响应如下图所示
+After the differential output of the AD9708 chip, a 7th-order Butterworth low-pass filter with a bandwidth of 40MHz is connected to prevent noise interference. The frequency response is shown below.
 
 .. image:: images/23_media/image5.png
       
-滤波器参数如下图所示
+The filter parameters are shown below.
 
 .. image:: images/23_media/image6.png
       
-滤波器之后，我们使用了2片高性能145MHz带宽的运放AD8056，实现差分变单端，以及幅度调节等功能，使整个电路性能得到了最大限度的提升。幅度调节，使用的是5K的电位器，最终的输出范围是-5V~5V（10Vpp）。
+After the filter, we use two high-performance AD8056 op-amps with 145MHz bandwidth to convert from differential to single-ended and provide amplitude adjustment, maximizing the overall circuit performance. The amplitude adjustment uses a 5K potentiometer, and the final output range is -5V to 5V (10Vpp).
 
-注：\ **由于电路器的精度不是很精确，最终的输出有一定误差，有可能波形幅度不能达到10Vpp，也有可能出现波形削顶等问题，这些都属正常情况**\ 。
+Note:\ **Due to the limited precision of the circuit components, the final output may have some error. The waveform amplitude may not reach 10Vpp, or waveform clipping may occur. These are all normal situations.**\ 
 
-模数转换（AD）电路
-~~~~~~~~~~~~~~~~~~~
+Analog-to-Digital Conversion (AD) Circuit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-如硬件结构图中所示，AD电路由高速AD芯片、衰减电路和信号输入接口组成。
+As shown in the hardware block diagram, the AD circuit consists of a high-speed AD chip, an attenuation circuit, and a signal input interface.
 
-我们使用的高速AD芯片是由AD公司推出的8位，最大采样率32MSPS的AD9280芯片。内部结构图如下图所示
+The high-speed AD chip we use is the AD9280 from Analog Devices, an 8-bit chip with a maximum sampling rate of 32MSPS. The internal block diagram is shown below.
 
 .. image:: images/23_media/image7.png
       
-根据下图的配置，我们将AD电压输入范围设置为：0V~2V
+Based on the configuration shown below, we set the AD voltage input range to 0V to 2V.
 
 .. image:: images/23_media/image8.png
       
-在信号进入AD芯片之前，我们用一片AD8056芯片构建了衰减电路，接口的输入范围是-5V~+5V(10Vpp)。衰减以后，输入范围满足AD芯片的输入范围（0~2V）。转换公式如下：
+Before the signal enters the AD chip, we built an attenuation circuit using an AD8056 chip, with an interface input range of -5V to +5V (10Vpp). After attenuation, the input range meets the AD chip's input range (0 to 2V). The conversion formula is as follows:
 
 .. image:: images/23_media/image9.png
       
-当输入信号Vin=5(V)的时候，输入到AD的信号Vad=2(V)；
+When the input signal Vin = 5(V), the signal input to the AD is Vad = 2(V);
 
-当输入信号Vin=-5(V)的时候，输入到AD的信号Vad=0(V)；
+When the input signal Vin = -5(V), the signal input to the AD is Vad = 0(V);
 
-程序设计
---------
+Program Design
+--------------
 
-本实验程序设计跟AN706波形显示实验基本类似，只是ADDA模块是单通道的AD，这里只是一路采集波形的叠加。另外FPGA通过ROM IP产生正弦波数据输出到DA芯片进行DA转换，产生正选波模拟信号，用户只有用BNC线把模块的AD和DA端口连接起来就形成环路。这样HDMI显示器上显示的就是DA正选波的信号了。
+The program design for this experiment is basically similar to the AN706 waveform display experiment, except that the ADDA module has a single-channel AD, so only one channel of waveform acquisition is overlaid. Additionally, the FPGA generates sine wave data through a ROM IP and outputs it to the DA chip for DA conversion, producing a sine wave analog signal. Users only need to connect the AD and DA ports of the module with a BNC cable to form a loop. This way, the HDMI monitor will display the DA sine wave signal.
 
 .. image:: images/23_media/image10.png
 
-ad9280_sample模块主要完成ad9280的AD 8位数据采集和转换，每次采集1280个数据，然后等待一段时间再继续采集下次的1280个数据。
+The ad9280_sample module mainly handles the 8-bit AD data acquisition and conversion of the ad9280. It collects 1280 data points each time, then waits for a period before collecting the next 1280 data points.
 
 +--------------+------+-------+--------------------------------------+
-| 信号名称     | 方向 | 宽度  | 说明                                 |
+| Signal Name  | Dir  | Width | Description                          |
 |              |      | (bit) |                                      |
 +==============+======+=======+======================================+
-| adc_clk      | in   | 1     | adc系统时钟                          |
+| adc_clk      | in   | 1     | ADC system clock                     |
 +--------------+------+-------+--------------------------------------+
-| rst          | in   | 1     | 异步复位，高复位                     |
+| rst          | in   | 1     | Async reset, active high             |
 +--------------+------+-------+--------------------------------------+
-| adc_data     | in   | 8     | ADC数据输入                          |
+| adc_data     | in   | 8     | ADC data input                       |
 +--------------+------+-------+--------------------------------------+
-| adc_buf_wr   | out  | 1     | ADC数据写使能                        |
+| adc_buf_wr   | out  | 1     | ADC data write enable                |
 +--------------+------+-------+--------------------------------------+
-| adc_buf_addr | out  | 12    | ADC数据写地址                        |
+| adc_buf_addr | out  | 12    | ADC data write address               |
 +--------------+------+-------+--------------------------------------+
-| adc_buf_data | out  | 8     | 无符号8位ADC数据                     |
+| adc_buf_data | out  | 8     | Unsigned 8-bit ADC data              |
 +--------------+------+-------+--------------------------------------+
 
-ad9280_sample模块端口
+ad9280_sample Module Ports
 
-grid_display模块主要完成视频图像的网格线叠加，本实验将彩条视频输入，然后叠加一个网格后输出，
-这一块网格区域提供给后面的波形显示模块使用，这个网格区域是位于显示器水平方向（从左到右）从9到1018，垂直方向（从上到下）从9到308的视频显示位置。
+The grid_display module mainly handles the overlay of grid lines on the video image. In this experiment, a color bar video is input, then a grid is overlaid and output. This grid area is provided for the subsequent waveform display module. The grid area is located at the display position from 9 to 1018 in the horizontal direction (left to right) and from 9 to 308 in the vertical direction (top to bottom).
 
 .. image:: images/23_media/image11.png
       
 +-------------+------+-------+----------------------------------------+
-| 信号名称    | 方向 | 宽度  | 说明                                   |
+| Signal Name | Dir  | Width | Description                            |
 |             |      | (bit) |                                        |
 +=============+======+=======+========================================+
-| pclk        | in   | 1     | 像素时钟                               |
+| pclk        | in   | 1     | Pixel clock                            |
 +-------------+------+-------+----------------------------------------+
-| rst_n       | in   | 1     | 异步复位，低电平复位                   |
+| rst_n       | in   | 1     | Async reset, active low                |
 +-------------+------+-------+----------------------------------------+
-| i_hs        | in   | 1     | 视频行同步输入                         |
+| i_hs        | in   | 1     | Video horizontal sync input            |
 +-------------+------+-------+----------------------------------------+
-| i_vs        | in   | 1     | 视频场同步输入                         |
+| i_vs        | in   | 1     | Video vertical sync input              |
 +-------------+------+-------+----------------------------------------+
-| i_de        | in   | 1     | 视频数据有效输入                       |
+| i_de        | in   | 1     | Video data valid input                 |
 +-------------+------+-------+----------------------------------------+
-| i_data      | in   | 24    | 视频数据输入                           |
+| i_data      | in   | 24    | Video data input                       |
 +-------------+------+-------+----------------------------------------+
-| o_hs        | out  | 1     | 带网格视频行同步输出                   |
+| o_hs        | out  | 1     | Video horizontal sync output with grid |
 +-------------+------+-------+----------------------------------------+
-| o_vs        | out  | 1     | 带网格视频场同步输出                   |
+| o_vs        | out  | 1     | Video vertical sync output with grid   |
 +-------------+------+-------+----------------------------------------+
-| o_de        | out  | 1     | 带网格视频数据有效输出                 |
+| o_de        | out  | 1     | Video data valid output with grid      |
 +-------------+------+-------+----------------------------------------+
-| o_data      | out  | 24    | 带网格视频数据输出                     |
+| o_data      | out  | 24    | Video data output with grid            |
 +-------------+------+-------+----------------------------------------+
 
-grid_display模块端口
+grid_display Module Ports
 
-wav_display显示模块主要是完成波形数据的叠加显示，模块内含有一个双口ram，写端口是由ADC采集模块写入，读端口是显示模块。在网格显示区域有效的时候，每行显示都会读取RAM中存储的AD数据值，跟Y坐标比较来判断显示波形或者不显示。
+The wav_display module mainly handles the overlay display of waveform data. The module contains a dual-port RAM, where the write port is written by the ADC acquisition module and the read port is used by the display module. When the grid display area is active, each display line reads the AD data value stored in RAM and compares it with the Y coordinate to determine whether to display the waveform or not.
 
 .. image:: images/23_media/image12.png
       
 +--------------+------+-------+---------------------------------------+
-| 信号名称     | 方向 | 宽度  | 说明                                  |
+| Signal Name  | Dir  | Width | Description                           |
 |              |      | (bit) |                                       |
 +==============+======+=======+=======================================+
-| pclk         | in   | 1     | 像素时钟                              |
+| pclk         | in   | 1     | Pixel clock                           |
 +--------------+------+-------+---------------------------------------+
-| rst_n        | in   | 1     | 异步复位，低电平复位                  |
+| rst_n        | in   | 1     | Async reset, active low               |
 +--------------+------+-------+---------------------------------------+
-| wave_color   | in   | 24    | 波形颜色，rgb                         |
+| wave_color   | in   | 24    | Waveform color, RGB                   |
 +--------------+------+-------+---------------------------------------+
-| adc_clk      | in   | 1     | adc模块时钟                           |
+| adc_clk      | in   | 1     | ADC module clock                      |
 +--------------+------+-------+---------------------------------------+
-| adc_buf_wr   | in   | 1     | adc数据写使能                         |
+| adc_buf_wr   | in   | 1     | ADC data write enable                 |
 +--------------+------+-------+---------------------------------------+
-| adc_buf_addr | in   | 12    | adc数据写地址                         |
+| adc_buf_addr | in   | 12    | ADC data write address                |
 +--------------+------+-------+---------------------------------------+
-| adc_buf_data | in   | 8     | adc数据，无符号数                     |
+| adc_buf_data | in   | 8     | ADC data, unsigned                    |
 +--------------+------+-------+---------------------------------------+
-| i_hs         | in   | 1     | 视频行同步输入                        |
+| i_hs         | in   | 1     | Video horizontal sync input           |
 +--------------+------+-------+---------------------------------------+
-| i_vs         | in   | 1     | 视频场同步输入                        |
+| i_vs         | in   | 1     | Video vertical sync input             |
 +--------------+------+-------+---------------------------------------+
-| i_de         | in   | 1     | 视频数据有效输入                      |
+| i_de         | in   | 1     | Video data valid input                |
 +--------------+------+-------+---------------------------------------+
-| i_data       | in   | 24    | 视频数据输入                          |
+| i_data       | in   | 24    | Video data input                      |
 +--------------+------+-------+---------------------------------------+
-| o_hs         | out  | 1     | 带网格视频行同步输出                  |
+| o_hs         | out  | 1     | Video horizontal sync output with grid|
 +--------------+------+-------+---------------------------------------+
-| o_vs         | out  | 1     | 带网格视频场同步输出                  |
+| o_vs         | out  | 1     | Video vertical sync output with grid  |
 +--------------+------+-------+---------------------------------------+
-| o_de         | out  | 1     | 带网格视频数据有效输出                |
+| o_de         | out  | 1     | Video data valid output with grid     |
 +--------------+------+-------+---------------------------------------+
-| o_data       | out  | 24    | 带网格视频数据输出                    |
+| o_data       | out  | 24    | Video data output with grid           |
 +--------------+------+-------+---------------------------------------+
 
-wav_display模块端口
+wav_display Module Ports
 
-timing_gen_xy模块为其它模块的子模块，完成视频图像的坐标生成，x坐标，从左到右增大，y坐标从上到下增大。
+The timing_gen_xy module is a sub-module of other modules that generates video image coordinates. The x coordinate increases from left to right, and the y coordinate increases from top to bottom.
 
 +-------------+------+-------+----------------------------------------+
-| 信号名称    | 方向 | 宽度  | 说明                                   |
+| Signal Name | Dir  | Width | Description                            |
 |             |      | (bit) |                                        |
 +=============+======+=======+========================================+
-| clk         | in   | 1     | 系统时钟                               |
+| clk         | in   | 1     | System clock                           |
 +-------------+------+-------+----------------------------------------+
-| rst_n       | in   | 1     | 异步复位，低电平复位                   |
+| rst_n       | in   | 1     | Async reset, active low                |
 +-------------+------+-------+----------------------------------------+
-| i_hs        | in   | 1     | 视频行同步输入                         |
+| i_hs        | in   | 1     | Video horizontal sync input            |
 +-------------+------+-------+----------------------------------------+
-| i_vs        | in   | 1     | 视频场同步输入                         |
+| i_vs        | in   | 1     | Video vertical sync input              |
 +-------------+------+-------+----------------------------------------+
-| i_de        | in   | 1     | 视频数据有效输入                       |
+| i_de        | in   | 1     | Video data valid input                 |
 +-------------+------+-------+----------------------------------------+
-| i_data      | in   | 24    | 视频数据输入                           |
+| i_data      | in   | 24    | Video data input                       |
 +-------------+------+-------+----------------------------------------+
-| o_hs        | out  | 1     | 视频行同步输出                         |
+| o_hs        | out  | 1     | Video horizontal sync output           |
 +-------------+------+-------+----------------------------------------+
-| o_vs        | out  | 1     | 视频场同步输出                         |
+| o_vs        | out  | 1     | Video vertical sync output             |
 +-------------+------+-------+----------------------------------------+
-| o_de        | out  | 1     | 视频数据有效输出                       |
+| o_de        | out  | 1     | Video data valid output                |
 +-------------+------+-------+----------------------------------------+
-| o_data      | out  | 24    | 视频数据输出                           |
+| o_data      | out  | 24    | Video data output                      |
 +-------------+------+-------+----------------------------------------+
-| x           | out  | 12    | 坐标x输出                              |
+| x           | out  | 12    | X coordinate output                    |
 +-------------+------+-------+----------------------------------------+
-| y           | out  | 12    | 坐标y输出                              |
+| y           | out  | 12    | Y coordinate output                    |
 +-------------+------+-------+----------------------------------------+
 
-timing_gen_xy模块端口
+timing_gen_xy Module Ports
 
-另外在本例程中添加了一个ROM IP模块，需要对ROM IP初始化数据。这里仅介绍如何使用波形数据生成工具，在软件工具及驱动文件夹下找到工具，其图标如下所示：
+Additionally, a ROM IP module is added in this example, which requires initialization data for the ROM IP. Here we only introduce how to use the waveform data generation tool. Find the tool in the software tools and drivers folder. Its icon is shown below:
 
 .. image:: images/23_media/image13.png
       
-1. 双击.exe打开工具，打开界面如下：
+1. Double-click the .exe file to open the tool. The interface is shown below:
 
 .. image:: images/23_media/image14.png
       
-2. 可以根据需要自选波形，本例程中选择正弦波，数据长度和位宽保持默认
+2. You can select the waveform as needed. In this example, a sine wave is selected, and the data length and bit width are kept at default values.
 
 .. image:: images/23_media/image15.png
       
-3. 点击保存按钮，将生成的数据文件保存到工程目录文件下（注意保存的文件类型）：
+3. Click the save button to save the generated data file to the project directory (pay attention to the file type being saved):
 
 .. image:: images/23_media/image16.png
       
-4. 保存后出现如下对话框表示保存成功，点击确定后关闭工具
+4. After saving, the following dialog box appears indicating a successful save. Click OK to close the tool.
 
 .. image:: images/23_media/image17.png
             
-将 .coe文件保存到生成的Rom IP核中即可，这里不再重复介绍
+Save the .coe file to the generated ROM IP core. This will not be repeated here.
 
-实验现象
---------
+Experiment Results
+------------------
 
-连接AN108的DAC输入到信号发生器的输出，\ **这里使用的是专用屏蔽线，如果使用其他线可能会有较大干扰**\ 。
+Connect the DAC output of AN108 to the ADC input using a BNC cable.\ **A dedicated shielded cable is used here. Using other cables may cause significant interference.**\ 
 
 .. image:: images/23_media/image18.png
       
-AN108连接示意图
+AN108 Connection Diagram
 
 .. image:: images/23_media/image19.png
       
-J11扩展口
+J11 Expansion Port
 
-调节信号发生的频率和幅度，AN108输入范围-5V-5V，为了便于观察波形数据，建议信号输入频率200Khz到1Mhz。观察显示器输出，红色波形为ADC输入、黄色网格最上面横线代表5V，最下面横线代表-5V，中间横线代表0V，每个竖线间隔是10个采样点。
+Adjust the frequency and amplitude of the signal generator. The AN108 input range is -5V to 5V. For easier observation of waveform data, it is recommended to set the signal input frequency between 200KHz and 1MHz. Observe the monitor output: the red waveform represents the ADC input; in the yellow grid, the top horizontal line represents 5V, the bottom horizontal line represents -5V, the middle horizontal line represents 0V, and each vertical line interval represents 10 sampling points.
 
 .. image:: images/23_media/image2.png
       
