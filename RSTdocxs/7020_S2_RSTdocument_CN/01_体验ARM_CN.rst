@@ -1,517 +1,517 @@
-体验ARM，裸机输出“Hello World”
-================================
+Experience ARM, Bare-Metal "Hello World" Output
+================================================
 
-**实验Vivado工程为“ps_hello”。**
+**The Vivado project for this experiment is "ps_hello".**
 
-**从本章开始由FPGA工程师与软件开发工程师协同实现。**
+**Starting from this chapter, the work is carried out collaboratively by FPGA engineers and software developers.**
 
-前面的实验都是在PL端进行的，可以看到和普通FPGA开发流程没有任何区别，ZYNQ的主要优势就是FPGA和ARM的合理结合，这对开发人员提出了更高的要求。从本章开始，我们开始使用ARM，也就是我们说的PS，本章我们使用一个简单的串口打印来体验一下Vivado
-Vitis和PS端的特性。
+The previous experiments were all conducted on the PL side, and you can see that there is no difference from the ordinary FPGA development flow. The main advantage of ZYNQ is the rational combination of FPGA and ARM, which places higher demands on developers. Starting from this chapter, we will begin using ARM, which is what we call the PS. In this chapter, we will use a simple serial port print to experience the features of Vivado,
+Vitis, and the PS side.
 
-前面的实验都是FPGA工程师应该做的事情，从本章节开始就有了分工，FPGA工程师负责把Vivado工程搭建好，提供好硬件给软件开发人员，软件开发人员便能在这个基础上开发应用程序。做好分工，也有利于项目的推进。如果是软件开发人员想把所有的事情都做了，可能需要花费很多时间和精力去学习FPGA的知识，由软件思维转成硬件思维是个比较痛苦的过程，如果纯粹的学习，又有时间，就另当别论了。专业的人做专业的事，是个很好的选择。
+The previous experiments were all the work of FPGA engineers. Starting from this chapter, there is a division of labor. The FPGA engineer is responsible for building the Vivado project and providing the hardware to the software developer, who can then develop applications on this basis. A good division of labor also helps advance the project. If a software developer wants to do everything, it may take a lot of time and effort to learn FPGA knowledge. Transitioning from software thinking to hardware thinking is a rather painful process. If you are purely learning and have the time, that is a different story. Having professionals do professional work is a very good choice.
 
-硬件介绍
---------
+Hardware Introduction
+---------------------
 
-我们从原理图中可以看到ZYNQ芯片分为PL和PS，PS端的IO分配相对是固定的，不能任意分配，而且不需要在Vivado软件里分配管脚，虽然本实验仅仅使用了PS，但是还要建立一个Vivado工程，用来配置PS管脚。虽然PS端的ARM是硬核，但是在ZYNQ当中也要将ARM硬核添加到工程当中才能使用。前面章节介绍的是代码形式的工程，本章开始介绍ZYNQ的图形化方式建立工程。
+From the schematic, we can see that the ZYNQ chip is divided into PL and PS. The IO allocation on the PS side is relatively fixed and cannot be arbitrarily assigned, and there is no need to assign pins in the Vivado software. Although this experiment only uses the PS, a Vivado project still needs to be created to configure the PS pins. Although the ARM on the PS side is a hard core, it must also be added to the project in ZYNQ before it can be used. The previous chapters introduced code-based projects; this chapter introduces the graphical method of creating projects in ZYNQ.
 
-FPGA工程师工作内容
-------------------
+FPGA Engineer Work Content
+---------------------------
 
-下面介绍FPGA工程师负责内容。
+The following describes the content that the FPGA engineer is responsible for.
 
-Vivado工程建立
---------------
+Vivado Project Creation
+-----------------------
 
-1) 创建一个名为“ps_hello”的工程，建立过程不再赘述，参考“PL的”Hello
-   World”LED实验”。
+1) Create a project named "ps_hello". The creation process will not be repeated here; refer to the "PL 'Hello
+   World' LED Experiment".
 
-2) 点击“Create Block Design”，创建一个Block设计，也就是图形化设计
+2) Click "Create Block Design" to create a Block design, which is a graphical design
 
 .. image:: images/01_media/image1.png
       
-3) “Design name”这里不做修改，保持默认“design_1”，这里可以根据需要修改，不过名字要尽量简短，否则在Windows下编译会有问题。
+3) The "Design name" is not modified here and remains the default "design_1". This can be modified as needed, but the name should be as short as possible, otherwise there will be issues when compiling under Windows.
 
 .. image:: images/01_media/image2.png
       
-4) 点击“Add IP”快捷图标
+4) Click the "Add IP" shortcut icon
 
 .. image:: images/01_media/image3.png
       
-5) 搜索“zynq”，在搜索结果列表中双击“ZYNQ7 Processing System”
+5) Search for "zynq" and double-click "ZYNQ7 Processing System" in the search results list
 
 .. image:: images/01_media/image4.png
       
-6) 双击Block图中的“processing_system7_0”，配置相关参数
+6) Double-click "processing_system7_0" in the Block diagram to configure the relevant parameters
 
 .. image:: images/01_media/image5.png
       
-7) 首先出现的界面是ZYNQ硬核的架构图，可以很清楚看到它的结构，可以参考ug585文档，里面有对ZYNQ的详细介绍。图中绿色部分是可配置模块，可以点击进入相应的编辑界面，当然也可以在左侧的窗口进入编辑。下面对各个窗口的功能一一介绍。
+7) The first interface that appears is the architecture diagram of the ZYNQ hard core. You can clearly see its structure. You can refer to the ug585 document, which contains a detailed introduction to ZYNQ. The green parts in the diagram are configurable modules. You can click to enter the corresponding editing interface, and you can also enter the editing interface from the left window. The functions of each window are introduced below.
 
 .. image:: images/01_media/image6.png
       
-8) 接下来是PS-PL
-Configuration界面，这个界面主要是进行PS与PL之间接口的配置，主要是AXI接口，这些接口可以扩展PL端的AXI接口外设，所以PL如果要和PS进行数据交互，都要按照AXI总线协议进行，xilinx为我们提供了大量的AXI接口的IP
-核。在这里保持默认，在后面的章节中会对其配置，本章节不与PL端进行交互，保持默认。
+8) Next is the PS-PL
+Configuration interface. This interface is mainly for configuring the interface between PS and PL, primarily AXI interfaces. These interfaces can extend AXI peripheral devices on the PL side, so if PL needs to exchange data with PS, it must follow the AXI bus protocol. Xilinx provides a large number of AXI interface IP
+cores. Keep the defaults here; they will be configured in later chapters. This chapter does not interact with the PL side, so keep the defaults.
 
 .. image:: images/01_media/image7.png
       
-9) 之后进入PS端外设的配置阶段，一开始接触ZYNQ可能会很疑惑，看到密密麻麻的外设，无从下手。这里解释一下，ZYNQ的PS端外设很多是复用的，相同的引脚标号可以配置成不一样的功能，比如下图中的16-27可以配置成Enet0，也可以配置成SD0、SD1，但只能配置成一种外设，比如如果配置Enet0，也就不能再选择SD0、SD1了。
-至于该怎么去选择，是由原理图和PCB决定的，可以通过查看原理图或用户手册选择。
+9) Then we enter the PS peripheral configuration stage. When first encountering ZYNQ, you may be very confused seeing the dense peripherals, not knowing where to start. Here is an explanation: many of the PS-side peripherals in ZYNQ are multiplexed. The same pin numbers can be configured with different functions. For example, pins 16-27 in the figure below can be configured as Enet0, or as SD0, SD1, but can only be configured as one peripheral. For instance, if configured as Enet0, you cannot select SD0 or SD1.
+As for how to choose, it is determined by the schematic and PCB. You can select by checking the schematic or user manual.
 
 .. image:: images/01_media/image8.png
       
 .. image:: images/01_media/image9.png
       
-PS端外设原理图
+PS-Side Peripheral Schematic
 
-PS端外设配置
-~~~~~~~~~~~~
+PS-Side Peripheral Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1)  从原理图中我们可以找到串口连接在PS的MIO48-MIO49上，所以在“Peripheral I/O Pins”选项中使能UART1（MIO48 MIO49），PS端MIO分为两个Bank，Bank 0 ，也就是原理图中的BANK500，电压选择“LVCMOS 3.3V”，Bank 1，也就是原理图中的BANK501，电压选择“LVCOMS 1.8 V”。\ **如果不配置Bank1电平标准，可能导致串口无法接收**\ 。
+1)  From the schematic, we can find that the serial port is connected to MIO48-MIO49 of the PS, so enable UART1 (MIO48 MIO49) in the "Peripheral I/O Pins" option. The PS-side MIO is divided into two Banks: Bank 0, which corresponds to BANK500 in the schematic, with voltage selected as "LVCMOS 3.3V"; Bank 1, which corresponds to BANK501 in the schematic, with voltage selected as "LVCMOS 1.8V".\ **If the Bank1 voltage standard is not configured, the serial port may not be able to receive data**\ .
 
 .. image:: images/01_media/image10.png
       
-1)  配置QSPI，QSPI可以作为ZYNQ的启动存储设备，ZYNQ可以通过读取QSPI中存储的启动文件加载ARM和FPGA，从原理图得知，我们选择Quad SPI Flash为Single SS 4bit IO
+1)  Configure QSPI. QSPI can serve as the boot storage device for ZYNQ. ZYNQ can load ARM and FPGA by reading the boot files stored in QSPI. From the schematic, we select Quad SPI Flash as Single SS 4bit IO
 
 .. image:: images/01_media/image11.png
       
-12) 配置以太网，在PS端设计有以太网接口，根据原理图选择Ethernet 0到MIO16-MIO27
+12) Configure Ethernet. The PS side has an Ethernet interface. According to the schematic, select Ethernet 0 to MIO16-MIO27
 
 .. image:: images/01_media/image12.png
       
-MDIO为以太网PHY寄存器配置接口，选择MDIO并配置到MIO52-MIO53
+MDIO is the Ethernet PHY register configuration interface. Select MDIO and configure it to MIO52-MIO53
 
 .. image:: images/01_media/image13.png
       
-13) 配置USB0到MIO28-MIO39
+13) Configure USB0 to MIO28-MIO39
 
 .. image:: images/01_media/image14.png
       
-14) 除了QSPI启动ZYNQ，还有SD卡模式启动ZYNQ，选择SD 0，配置到MIO40-MIO45，选择Card Detection MIO47，用于检测SD卡的插入。
+14) In addition to QSPI boot for ZYNQ, there is also SD card boot mode. Select SD 0, configure to MIO40-MIO45, and select Card Detection MIO47 for detecting SD card insertion.
 
 .. image:: images/01_media/image15.png
       
-15) 打开GPIO MIO，PS便可以控制剩余未分配的MIO，用作GPIO
+15) Enable GPIO MIO so that the PS can control the remaining unassigned MIOs as GPIO
 
 .. image:: images/01_media/image16.png
       
-在GPIO MIO中选择MIO46作为USB PHY的复位
+Select MIO46 in GPIO MIO as the USB PHY reset
 
 .. image:: images/01_media/image17.png
       
-至此，外设配置结束。
+At this point, the peripheral configuration is complete.
 
-MIO配置
-~~~~~~~
+MIO Configuration
+~~~~~~~~~~~~~~~~~
 
-修改Enet0的电平标准为HSTL 1.8V，Speed 为fast，这些参数非常重要，如果不修改，网络可能不通。其他部分保持默认。
+Change the voltage standard of Enet0 to HSTL 1.8V and the Speed to fast. These parameters are very important; if not modified, the network may not work. Keep other parts at their defaults.
 
 .. image:: images/01_media/image18.png
       
-时钟配置
-~~~~~~~~
+Clock Configuration
+~~~~~~~~~~~~~~~~~~~
 
-16) 在“Clock Configuration”选项卡中我们可以配置PS时钟输入时钟频率，这里默认是33.333333，和板子上一致，不用修改，CPU频率默认666.666666Mhz，这里也不修改。同时PS还可以给PL端提供4路时钟，频率可以配置，这里不需要，所以保持默认即可。还有PS端外设的时钟等也可以进行配置，这里保持默认。
+16) In the "Clock Configuration" tab, we can configure the PS clock input frequency. The default here is 33.333333, which matches the board, so no modification is needed. The CPU frequency defaults to 666.666666MHz, which we also leave unchanged. The PS can also provide 4 clock outputs to the PL side with configurable frequencies, but we do not need them here, so keep the defaults. The clocks for PS-side peripherals can also be configured, but we keep the defaults here.
 
 .. image:: images/01_media/image19.png
       
-DDR3配置
-~~~~~~~~
+DDR3 Configuration
+~~~~~~~~~~~~~~~~~~
 
-17) 在“DDR Configuration”选项卡中可以配置PS端ddr的参数，AX7010配置DDR3型号为“MT41J128M16 HA-125”， AX7020配置DDR3型号为“MT41J256M16 RE-125”，\ **这里ddr3型号并不是板子上的ddr3型号，而是参数最接近的型号**\ 。Effective DRAM Bus Width”，选择“32 Bit”
+17) In the "DDR Configuration" tab, you can configure the PS-side DDR parameters. For AX7010, configure the DDR3 model as "MT41J128M16 HA-125"; for AX7020, configure the DDR3 model as "MT41J256M16 RE-125".\ **The DDR3 model here is not the actual DDR3 model on the board, but the model with the closest parameters**\ . For "Effective DRAM Bus Width", select "32 Bit"
 
 .. image:: images/01_media/image20.png
       
-AX7010 DDR3配置
+AX7010 DDR3 Configuration
 
 .. image:: images/01_media/image21.png
       
-AX7020 DDR3配置
+AX7020 DDR3 Configuration
 
-其他部分保持默认，点击OK。至此ZYNQ核的配置结束。
+Keep other parts at their defaults and click OK. At this point, the ZYNQ core configuration is complete.
 
-1)  点击“Run Block Automation”，vivado软件会自动完成一些导出端口的工作
+1)  Click "Run Block Automation". The Vivado software will automatically complete some port export work
 
 .. image:: images/01_media/image22.png
       
-19) 按照默认点击“OK”
+19) Click "OK" with the defaults
 
 .. image:: images/01_media/image23.png
       
-20) 点击“OK”以后我们可以看到PS端导出一些管脚，包括DDR还有FIXED_IO，DDR是DDR3的接口信号，FIXED_IO为PS端固定的一些接口，比如输入时钟，PS端复位信号，MIO等。
+20) After clicking "OK", we can see that the PS side exports some pins, including DDR and FIXED_IO. DDR is the DDR3 interface signal, and FIXED_IO contains some fixed interfaces on the PS side, such as the input clock, PS-side reset signal, MIO, etc.
 
 .. image:: images/01_media/image24.png
       
-21) 连接FCLK_CLK0到M_AXI_GP0_ACLK，按Ctrl+S保存设计
+21) Connect FCLK_CLK0 to M_AXI_GP0_ACLK, and press Ctrl+S to save the design
 
 .. image:: images/01_media/image25.png
       
-*知识点：DDR和FIXED_IO是PS端引脚，PS_PORB为PS端上电复位信号，不能用于PL端复位，不要将PL端的复位绑定到这个引脚号上，切记！！！*
+*Note: DDR and FIXED_IO are PS-side pins. PS_PORB is the PS-side power-on reset signal and cannot be used for PL-side reset. Do not bind the PL-side reset to this pin number. Remember this!!!*
 
 .. image:: images/01_media/image26.png
       
-22) 选择Block设计，右键“Create HDL Wrapper...”,创建一个Verilog或VHDL文件，为block design生成HDL顶层文件。
+22) Select the Block design, right-click "Create HDL Wrapper..." to create a Verilog or VHDL file that generates the HDL top-level file for the block design.
 
 .. image:: images/01_media/image27.png
       
-23) 保持默认选项，点击“OK”
+23) Keep the default options and click "OK"
 
 .. image:: images/01_media/image28.png
       
-24) 展开设计可以看到PS被当成一个普通IP 来使用。
+24) Expanding the design, you can see that the PS is used as a regular IP.
 
 .. image:: images/01_media/image29.png
       
-25) 选择block设计，右键“Generate Output Products”，此步骤会生成block的输出文件，包括IP，例化模板，RTL源文件，XDC约束，第三方综合源文件等等。供后续操作使用。
+25) Select the block design, right-click "Generate Output Products". This step generates the block output files, including IP, instantiation templates, RTL source files, XDC constraints, third-party synthesis source files, etc., for subsequent operations.
 
 .. image:: images/01_media/image30.png
       
-26) 点击“Generate”
+26) Click "Generate"
 
 .. image:: images/01_media/image31.png
       
-27) 其实并不是说PS端的引脚不需要绑定，而是在IP生成的输出文件里已经包含了PS端引脚分配的XDC文件，在IP Sources，Block Designsdesign\_
+27) It is not that PS-side pins do not need to be bound; rather, the IP-generated output files already contain the XDC file for PS-side pin assignments. In IP Sources, Block Designs design\_
 
-28) 1Synthesis中，可以看到处理器的XDC文件，绑定了PS端的IO，因此不需要再新建XDC绑定这些引脚。
+28) 1Synthesis, you can see the processor's XDC file, which binds the PS-side IO. Therefore, there is no need to create a new XDC to bind these pins.
 
 .. image:: images/01_media/image32.png
       
-29) 在菜单栏“File -> Export -> Export Hardware...”导出硬件信息，这里就包含了PS端的配置信息。
+29) In the menu bar, go to "File -> Export -> Export Hardware..." to export the hardware information, which includes the PS-side configuration information.
 
 .. image:: images/01_media/image33.png
       
-30) 在弹出的对话框中点击“OK”，因为实验仅仅是使用了PS的串口，不需要PL参与，这里就没有使能“Include bitstream”，导出路径可以自由选择，本实验保存在工程路径下面新建文件夹vitis，这个文件夹可以根据自己的需要在合适的位置新建，不一定要放在vivado工程下面，vivado和vitis软件是独立的。
+30) In the dialog box that appears, click "OK". Since the experiment only uses the PS serial port and does not require PL participation, "Include bitstream" is not enabled here. The export path can be freely chosen. In this experiment, it is saved in a newly created folder called vitis under the project path. This folder can be created at any suitable location according to your needs and does not have to be under the Vivado project. The Vivado and Vitis software are independent.
 
 .. image:: images/01_media/image34.png
       
 .. image:: images/01_media/image35.png
       
-此时在新建的vitis文件夹下可以看到xsa文件，这个文件就是这个文件就包含了Vivado硬件设计的信息，供软件开发人员使用。
+At this point, you can see the xsa file in the newly created vitis folder. This file contains the Vivado hardware design information for use by software developers.
 
 .. image:: images/01_media/image36.png
       
-到此为止，FPGA工程师工作告一段落。
+At this point, the FPGA engineer's work is complete for now.
 
-软件工程师工作内容
-------------------
+Software Engineer Work Content
+-------------------------------
 
-以下为软件工程师负责内容。
+The following is the content that the software engineer is responsible for.
 
-Vitis调试
----------
+Vitis Debugging
+---------------
 
-创建Application工程
-~~~~~~~~~~~~~~~~~~~
+Creating an Application Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) Vitis是独立的软件，我们可以通过ToolsLaunch Vitis打开Vitis软件
+1) Vitis is a standalone software. We can open Vitis through Tools -> Launch Vitis
 
 .. image:: images/01_media/image37.png
       
-也可以需要双击Vitis软件打开
+You can also double-click the Vitis software to open it
 
 .. image:: images/01_media/image38.png
          
-选择之前新建的文件夹，点击”Launch”
+Select the previously created folder and click "Launch"
 
 .. image:: images/01_media/image39.png
          
-2) 启动Vitis之后界面如下，点击“Create Application Project”，这个选项会生成APP工程以及Platfrom工程，Platform工程类似于以前版本的hardware platform，包含了硬件支持的相关文件以及BSP。
+2) After launching Vitis, the interface is as follows. Click "Create Application Project". This option generates an APP project and a Platform project. The Platform project is similar to the hardware platform in previous versions, containing hardware support files and BSP.
 
 .. image:: images/01_media/image40.png
          
-3) 点击Next
+3) Click Next
 
 .. image:: images/01_media/image41.png
          
-4) 点击“Create a new platform hardware(XSA)，软件已经提供了一些板卡的硬件平台，但对于我们自己的硬件平台，可以选择”可以选择browse”
+4) Click "Create a new platform hardware (XSA)". The software already provides hardware platforms for some boards, but for our own hardware platform, we can select "browse"
 
 .. image:: images/01_media/image42.png
          
-5) 选择之前生成的xsa，点击打开
+5) Select the previously generated xsa file and click Open
 
 .. image:: images/01_media/image43.png
          
-6) 最下面的Generate boot components选项，如果勾选上，软件会自动生成fsbl工程，我们一般选择默认勾选上。点击Next
+6) The "Generate boot components" option at the bottom, if checked, will cause the software to automatically generate the fsbl project. We generally keep it checked by default. Click Next
 
 .. image:: images/01_media/image44.png
          
-7) 项目名称填入“hello”，也可以根据自己的需要填写,CPU默认选择ps7_cortexa9_0，OS选择standalone，点击Next
+7) Enter "hello" for the project name, or fill in as needed. The CPU defaults to ps7_cortexa9_0, OS selects standalone. Click Next
 
 .. image:: images/01_media/image45.png
          
 .. image:: images/01_media/image46.png
          
-8) 模板选择Hello World，点击Finish
+8) Select Hello World as the template and click Finish
 
 .. image:: images/01_media/image47.png
          
-9) 完成之后可以看到生成了两个工程，一个是硬件平台工程，即之前所说的Platfrom工程，一个是APP工程
+9) After completion, you can see that two projects have been generated: one is the hardware platform project, i.e., the Platform project mentioned earlier, and the other is the APP project
 
 .. image:: images/01_media/image48.png
          
-10) 展开Platform工程后可以看到里面包含有BSP工程，以及zynq_fsbl工程（此工程即选择Generate boot components之后的结果）,双击platform.spr即可看到Platform对应生成的BSP工程，可以在这里对BSP进行配置。软件开发人员比较清楚，BSP也就是Board Support Package板级支持包的意思，里面包含了开发所需要的驱动文件，用于应用程序开发。可以看到Platform下有多个BSP，这是跟以往的Vitis软件不一样的，其中zynq_fsbl即是fsbl的BSP，standalone on ps7_cortexa9_0即是APP工程的BSP。也可以在Platform里添加BSP，在以后的例程中再讲。
+10) Expanding the Platform project, you can see that it contains the BSP project and the zynq_fsbl project (this project is the result of selecting Generate boot components). Double-click platform.spr to see the BSP project generated by the Platform, where you can configure the BSP. Software developers are familiar with BSP, which stands for Board Support Package, containing the driver files needed for development and used for application development. You can see that there are multiple BSPs under Platform, which is different from previous versions of Vitis. Among them, zynq_fsbl is the BSP for fsbl, and standalone on ps7_cortexa9_0 is the BSP for the APP project. You can also add BSPs in the Platform, which will be discussed in later examples.
 
 .. image:: images/01_media/image49.png
          
-1)  点开BSP，即可看到工程带有的外设驱动，其中Documentation是xilinx提供的驱动的说明文档，Import Examples是xilinx提供的example工程，加快学习。
+1)  Clicking on the BSP, you can see the peripheral drivers included in the project. Among them, Documentation is the driver documentation provided by Xilinx, and Import Examples are example projects provided by Xilinx to accelerate learning.
 
 .. image:: images/01_media/image50.png
       
-12) 选中APP工程，右键Build Project，或者点击菜单栏的“锤子”按键，进行工程编译
+12) Select the APP project, right-click Build Project, or click the "hammer" button in the menu bar to compile the project
 
 .. image:: images/01_media/image51.png
       
-13) 可以在Console看到编译过程
+13) You can see the compilation process in the Console
 
 .. image:: images/01_media/image52.png
       
-编译结束，生成elf文件
+Compilation is complete, and the elf file is generated
 
 .. image:: images/01_media/image53.png
       
-14) 连接JTAG线到开发板、UART的USB线到PC
+14) Connect the JTAG cable to the development board and the UART USB cable to the PC
 
-15) 使用PuTTY软件做为串口终端调试工具，PuTTY是一个免安装的小软件
+15) Use PuTTY software as the serial terminal debugging tool. PuTTY is a small portable software that does not require installation
 
 .. image:: images/01_media/image54.png
       
-16) 选择Serial，Serial line填写COM3，Speed填写115200，COM3串口号根据设备管理器里显示的填写，点击“Open”
+16) Select Serial, fill in COM3 for Serial line, fill in 115200 for Speed. The COM3 serial port number should be filled in according to what is displayed in the Device Manager. Click "Open"
 
 .. image:: images/01_media/image55.png
       
-17) 在上电之前最好将开发板的启动模式设置到JTAG模式
+17) Before powering on, it is best to set the boot mode of the development board to JTAG mode
 
 .. image:: images/01_media/image56.png
       
-18) 给开发板上电，准备运行程序，开发板出厂时带有程序，这里可以把运行模式选择JTAG模式，然后重新上电。选择“hello”，右键，可以看到很多选项，本实验要用到这里的“Run as”，就是把程序运行起来，“Run as”里又有很对选项，选择第一个“Launch on Hardware(Single Application Debug)”，使用系统调试，直接运行程序。
+18) Power on the development board and prepare to run the program. The development board comes with a program from the factory. Here, you can select JTAG mode for the boot mode and then power on again. Select "hello", right-click, and you can see many options. This experiment uses "Run as", which runs the program. Under "Run as", there are many options. Select the first one, "Launch on Hardware (Single Application Debug)", to use system debugging and run the program directly.
 
 .. image:: images/01_media/image57.png
       
-19) 这个时候观察PuTTY软件，即可以看到输出”Hello World”
+19) At this point, observe the PuTTY software, and you can see the output "Hello World"
 
 .. image:: images/01_media/image58.png
       
-20) 为了保证系统的可靠调试，最好是右键“Run As -> Run Configuration...”
+20) To ensure reliable system debugging, it is best to right-click "Run As -> Run Configuration..."
 
 .. image:: images/01_media/image59.png
       
-21) 我们可以看一下里面的配置，其中Reset entire system是默认选中的，这是跟以前的Vitis软件不同的。如果系统中还有PL设计，还必须选择“Program FPGA”。
+21) We can look at the configuration inside. Among them, "Reset entire system" is selected by default, which is different from previous versions of Vitis. If there is also a PL design in the system, you must also select "Program FPGA".
 
 .. image:: images/01_media/image60.png
       
-22) 除了“Run As”，还可以“Debug As”，这样可以设置断点，单步运行
+22) In addition to "Run As", you can also use "Debug As", which allows setting breakpoints and step-by-step execution
 
 .. image:: images/01_media/image61.png
       
-23) 进入Debug模式
+23) Enter Debug mode
 
 .. image:: images/01_media/image62.png
       
-24) 和其他C语言开发IDE一样，可以逐步运行、设置断点等
+24) Like other C language development IDEs, you can step through execution, set breakpoints, etc.
 
 .. image:: images/01_media/image63.png
       
-25) 右上角可以切换IDE模式
+25) The IDE mode can be switched in the upper right corner
 
 .. image:: images/01_media/image64.png
       
-固化程序
---------
+Program Flashing
+----------------
 
-普通的FPGA一般是可以从flash启动，或者被动加载，ZYNQ的启动是由ARM主导的，包括FPGA程序的加载，ZYNQ启动一般为最少两个步骤，在UG585中也有介绍：
+An ordinary FPGA can generally boot from flash or be passively loaded. ZYNQ booting is led by ARM, including loading the FPGA program. ZYNQ booting generally requires at least two steps, which are also described in UG585:
 
 Stage 0
-:在上电复位或者热复位之后，处理器首先执行BootRom里的代码，这一步是最初始启动设置。BootRom存放了一段用户不可更改的代码，当然是在非JTAG模式下才执行，代码里包含了最基本的NAND，NOR，Quad-SPI，SD和PCAP的驱动。另外一个很重要的作用就是把stage
-1的代码搬运到OCM中，就是FSBL代码（First Stage Boot
-Loader）,空间限制为192KB。
+:After power-on reset or warm reset, the processor first executes the code in BootRom. This is the initial boot setup. BootRom contains a piece of code that cannot be modified by the user. Of course, it is only executed in non-JTAG mode. The code includes the most basic drivers for NAND, NOR, Quad-SPI, SD, and PCAP. Another very important function is to move the stage
+1 code to OCM, which is the FSBL code (First Stage Boot
+Loader), with a space limit of 192KB.
 
 Stage 1:
-接下来进入最重要的一步，当BootRom搬运FSBL到OCM后，处理开始执行FSBL代码，FSBL主要有以下几个作用：
+Next comes the most important step. After BootRom moves the FSBL to OCM, the processor begins executing the FSBL code. The FSBL mainly serves the following purposes:
 
--  初始化PS端配置，这些配置也就是在Vivado工程中对ZYNQ核的配置。包括初始化DDR，MIO，SLCR寄存器。主要是执行ps7_init.c和ps7_init.h，ps7_init.tcl的执行效果跟ps7_init.c是一样的。
+-  Initialize PS-side configuration. These configurations are the ZYNQ core configurations set in the Vivado project, including initializing DDR, MIO, and SLCR registers. This mainly involves executing ps7_init.c and ps7_init.h. The execution effect of ps7_init.tcl is the same as ps7_init.c.
 
--  如果有PL端程序，加载PL端bitstream
+-  If there is a PL-side program, load the PL-side bitstream
 
--  加载second stage bootloader或者bare-metal应用程序到DDR存储器
+-  Load the second stage bootloader or bare-metal application into DDR memory
 
--  交接给second stage bootloader或bare-metal应用程序
+-  Hand off to the second stage bootloader or bare-metal application
 
 .. image:: images/01_media/image65.png
       
 Stage 2: Second stage
-bootloader是可选项，一般是在跑系统的情况下使用，比如linux系统的u-boot，在这里不再介绍，后面会使用petalinux工具制作linux系统。
+bootloader is optional and is generally used when running an operating system, such as u-boot for Linux. It will not be introduced here. Later, we will use the PetaLinux tool to build a Linux system.
 
-生成FSBL
-~~~~~~~~
+Generating FSBL
+~~~~~~~~~~~~~~~~
 
-FSBL是一个二级引导程序，完成MIO的分配、时钟、PLL、DDR控制器初始化、SD、QSPI控制器初始化，通过启动模式查找bitstream配置FPGA，然后搜索用户程序加载到DDR，最后交接给应用程序执行。详情请参考ug821文档。
+FSBL is a second-level boot loader that completes MIO allocation, clock, PLL, DDR controller initialization, SD, QSPI controller initialization, searches for the bitstream through the boot mode to configure the FPGA, then searches for the user program to load into DDR, and finally hands off to the application for execution. For details, please refer to the ug821 document.
 
-1) 由于在新建时选择了Generate boot components选项，所以Platform已经导入了fsbl的工程，并生成了相应的elf文件。
+1) Since the "Generate boot components" option was selected during creation, the Platform already has the fsbl project imported and has generated the corresponding elf file.
 
 .. image:: images/01_media/image66.png
       
-2) 添加调试宏定义FSBL_DEBUG_INFO，可以在启动输出FSBL的一些状态信息，有利于调试，但是会导致启动时间变长。保存文件。可以看一下fsbl里包含了很多外设的文件，包括ps7_init.c，nand，nor，qspi，sd等，在fsbl的main.c中，第一个运行的函数就是ps7_init，至于后面的工作，大家可以再仔细读读代码。当然这个fsbl模板也是可以修改的，至于怎么修改根据自己的需求来做。
+2) Add the debug macro definition FSBL_DEBUG_INFO, which allows FSBL status information to be output during startup, aiding in debugging, but it will increase the boot time. Save the file. You can see that fsbl contains many peripheral files, including ps7_init.c, nand, nor, qspi, sd, etc. In fsbl's main.c, the first function to run is ps7_init. As for the subsequent work, you can read the code carefully. Of course, this fsbl template can also be modified according to your needs.
 
 .. image:: images/01_media/image67.png
       
-3) 重新Build Project
+3) Rebuild the Project
 
 .. image:: images/01_media/image68.png
       
-4) 接下来我们可以点击APP工程的system，右键选择Build project
+4) Next, we can click on the system of the APP project, right-click and select Build Project
 
 .. image:: images/01_media/image69.png
       
-5) 这个时候就会多出一个Debug文件夹，生成了对应的BOOT.BIN
+5) At this point, an additional Debug folder will appear, and the corresponding BOOT.BIN will be generated
 
 .. image:: images/01_media/image70.png
       
-6) 还有一种方法就是，点击APP工程的system右键选择Creat Boot Image，弹出的窗口中可以看到生成的BIF文件路径，BIF文件是生成BOOT文件的配置文件，还有生成的BOOT.bin文件路径，BOOT.bin文件是我们需要的启动文件，可以放到SD卡启动，也可以烧写到QSPI Flash。
+6) Another method is to click on the system of the APP project, right-click and select Create Boot Image. In the pop-up window, you can see the path of the generated BIF file. The BIF file is the configuration file for generating the BOOT file. There is also the path of the generated BOOT.bin file. The BOOT.bin file is the boot file we need, which can be placed on an SD card for booting or written to QSPI Flash.
 
 .. image:: images/01_media/image71.png
       
 .. image:: images/01_media/image72.png
       
-7) 在Boot image partitions列表中有要合成的文件，第一个文件一定是bootloader文件，就是上面生成的fsbl.elf文件，第二个文件是FPGA配置文件bitstream，在本实验中由于没有FPGA的bitstream，不需要添加，第三个是应用程序，在本实验中为hello.elf，由于没有bitstream，在本实验中只添加bootloader和应用程序。点击Create Image生成。
+7) In the Boot image partitions list are the files to be combined. The first file must be the bootloader file, which is the fsbl.elf file generated above. The second file is the FPGA configuration file bitstream. In this experiment, since there is no FPGA bitstream, it does not need to be added. The third is the application, which in this experiment is hello.elf. Since there is no bitstream, only the bootloader and application are added in this experiment. Click Create Image to generate.
 
 .. image:: images/01_media/image73.png
       
-8) 在生成的目录下可以找到BOOT.bin文件
+8) The BOOT.bin file can be found in the generated directory
 
 .. image:: images/01_media/image74.png
       
-SD卡启动测试
-~~~~~~~~~~~~
+SD Card Boot Test
+~~~~~~~~~~~~~~~~~~
 
-1) 格式化SD卡，只能格式化为FAT32格式，其他格式无法启动
+1) Format the SD card. It can only be formatted as FAT32; other formats cannot boot
 
 .. image:: images/01_media/image75.png
       
-2) 放入BOOT.bin文件，放在根目录
+2) Place the BOOT.bin file in the root directory
 
 .. image:: images/01_media/image76.png
       
-3) SD卡插入开发板的SD卡插槽
+3) Insert the SD card into the SD card slot of the development board
 
-4) 启动模式调整为SD卡启动
+4) Set the boot mode to SD card boot
 
 .. image:: images/01_media/image56.png
       
-5) 打开putty软件，上电启动，即可看到打印信息，红色框为FSBL启动信息，黄色箭头部分为执行的应用程序helloworld
+5) Open PuTTY software, power on and boot. You can see the print information. The red box shows the FSBL boot information, and the yellow arrow shows the executed application helloworld
 
 .. image:: images/01_media/image77.png
       
-QSPI启动测试
-~~~~~~~~~~~~
+QSPI Boot Test
+~~~~~~~~~~~~~~~
 
-1) 在Vitis菜单Xilinx -> Program Flash
+1) In the Vitis menu, go to Xilinx -> Program Flash
 
 .. image:: images/01_media/image78.png
       
-1) Hardware Platform选择最新的，Image FIle文件选择要烧写的BOOT.bin，FSBL file选择fsbl.elf。选择Verify after flash，在烧写完成后校验flash。
+1) For Hardware Platform, select the latest one. For Image File, select the BOOT.bin to be programmed. For FSBL file, select fsbl.elf. Select Verify after flash to verify the flash after programming is complete.
 
 .. image:: images/01_media/image79.png
       
-2) 点击Program等待烧写完成
+2) Click Program and wait for programming to complete
 
 .. image:: images/01_media/image80.png
       
-3) 设置启动模式为QSPI，再次启动，可以在putty里看到与SD同样的启动效果。
+3) Set the boot mode to QSPI, and boot again. You can see the same boot result as SD in PuTTY.
 
 .. image:: images/01_media/image81.png
       
 .. image:: images/01_media/image82.png
       
-Vivado下烧写QSPI 
-~~~~~~~~~~~~~~~~~
+Programming QSPI in Vivado 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) 在HARDWARE MANGER下选择器件，右键Add Configuration Memory Device
+1) In HARDWARE MANAGER, select the device, right-click Add Configuration Memory Device
 
 .. image:: images/01_media/image83.png
       
-2) 选择尝试Winbond，类型选择qspi，宽度选择x4-single，这时候出现w25q128，选择红框型号，开发板使用w25q256，但是不影响烧录。
+2) Select the manufacturer Winbond, select type qspi, select width x4-single. At this point, w25q128 appears. Select the model shown in the red box. The development board uses w25q256, but this does not affect programming.
 
 .. image:: images/01_media/image84.png
       
-3) 右键选择编程文件
+3) Right-click to select the programming file
 
 .. image:: images/01_media/image85.png
       
-4) 选择要烧写的文件和fsbl文件，就可以烧写了，如果烧写时不是JTAG启动模式，软件会给出一个警告，所以建议烧写QSPI的时候设置到JTAG启动模式
+4) Select the file to be programmed and the fsbl file, and you can start programming. If the boot mode is not JTAG during programming, the software will give a warning. Therefore, it is recommended to set the boot mode to JTAG when programming QSPI
 
 .. image:: images/01_media/image86.png
       
-使用批处理文件快速烧写QSPI
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using a Batch File to Quickly Program QSPI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) 新建一个program_qspi.txt文本文件，扩展名改为bat,内容填写如下，其中set XIL_CSE_ZYNQ_DISPLAY_UBOOT_MESSAGES=1设置显示烧写过程中的uboot打印信息，
+1) Create a new text file named program_qspi.txt, change the extension to bat, and fill in the following content. Among them, set XIL_CSE_ZYNQ_DISPLAY_UBOOT_MESSAGES=1 sets the display of uboot print information during the programming process.
 
 ..
 
    F:\\Xilinx_Vitis\\Vitis\\2023.1\\bin\\program_flash
-   为我们工具路径，按照安装路径适当修改，-f
-   为要烧写的文件，-fsbl为要烧写使用的fsbl文件，-verify为校验选项。
+   is our tool path, modify appropriately according to the installation path. -f
+   is the file to be programmed, -fsbl is the fsbl file used for programming, -verify is the verification option.
 
 ::
 
  call F:\Xilinx_Vitis\Vitis\2023.1\bin\program_flash -f BOOT.bin    -offset 0 -flash_type qspi-x4-single  -fsbl fsbl.elf -verify
  pause
 
-1) 把要烧录的BOOT.bin、fsbl、bat文件放在一起
+1) Place the BOOT.bin to be programmed, the fsbl, and the bat file together
 
 .. image:: images/01_media/image87.png
       
-2) 插上JTAG线后上电，双击bat文件即可烧写flash。
+2) After connecting the JTAG cable and powering on, double-click the bat file to program the flash.
 
 .. image:: images/01_media/image88.png
       
-常见问题
---------
+Frequently Asked Questions
+--------------------------
 
-仅有PL端逻辑的固化
-~~~~~~~~~~~~~~~~~~
+Flashing with Only PL-Side Logic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-有很多人会问，如果只有PL端的逻辑，不需要PS端该怎么固化程序呢？不带ARM的FPGA固化是没问题的，但是对于ZYNQ来说，必须要有PS端的配合才能固化程序。那么对于前面的”PL的“Hello World”LED实验”该怎么固化程序呢？
+Many people ask: if there is only PL-side logic and the PS side is not needed, how do you flash the program? Flashing an FPGA without ARM is not a problem, but for ZYNQ, PS-side cooperation is required to flash the program. So how do you flash the program for the previous "PL 'Hello World' LED Experiment"?
 
-1. 根据本章的PS端添加ZYNQ核并配置，最简单的方法就是在本章工程的基础上添加LED实验的verilog源文件，并进行例化，组成一个系统，并需要生成bitstream。
+1. Based on this chapter, add the ZYNQ core on the PS side and configure it. The simplest method is to add the LED experiment's Verilog source files to this chapter's project, instantiate them to form a system, and generate the bitstream.
 
 .. image:: images/01_media/image89.png
       
 .. image:: images/01_media/image90.png
       
-2. 生成bitstream之后，导出硬件，选择include bitstream
+2. After generating the bitstream, export the hardware and select include bitstream
 
 .. image:: images/01_media/image91.png
          
-3. 在生成BOOT.BIN时，还是需要一个app工程hello，仅仅是为了生成BOOT.BIN，默认情况下在system右键Build Project，即可生成包含bitstream的BOOT.BIN。
+3. When generating BOOT.BIN, you still need an app project hello, solely for generating BOOT.BIN. By default, right-click Build Project on the system to generate BOOT.BIN that includes the bitstream.
 
 .. image:: images/01_media/image92.png
       
-打开Create Boot Image界面可以看到，Boot Image Partitions的文件顺序是fsbl、bitstream、app，注意顺序不要颠倒，利用这样生成的BOOT.BIN就可以按照前面的启动方式测试启动了
+Open the Create Boot Image interface and you can see that the file order in Boot Image Partitions is fsbl, bitstream, app. Note that the order must not be reversed. The BOOT.BIN generated this way can be tested for booting using the methods described earlier
 
 .. image:: images/01_media/image93.png
       
-在course_s2文件夹，我们提供了一个名为led_qspi_sd的工程，大家可以参考。
+In the course_s2 folder, we provide a project named led_qspi_sd for your reference.
 
-使用技巧分享
-------------
+Tips and Tricks
+---------------
 
-在频繁的修改源文件，并进行编译的时候，最好选择APP工程进行Build Project，这种情况下只会生成elf文件。
+When frequently modifying source files and compiling, it is best to select the APP project for Build Project. In this case, only the elf file will be generated.
 
 .. image:: images/01_media/image94.png
       
-如果想生成BOOT.BIN文件，可以选择system进行编译，这种情况既会生成elf也会生成BOOT.BIN，笔者最开始用的时候就吃过亏，每次编译都是选择system，结果每次都要等待生成BOOT.BIN，浪费时间，大家可以注意一下。
+If you want to generate a BOOT.BIN file, you can select the system for compilation. In this case, both the elf and BOOT.BIN will be generated. The author suffered from this when first using the tool, selecting system every time for compilation, which resulted in waiting for BOOT.BIN generation every time, wasting time. Please take note of this.
 
 .. image:: images/01_media/image95.png
       
-本章小结
---------
+Chapter Summary
+---------------
 
-本章从FPGA工程师和软件工程师两者角度出发，介绍了ZYNQ开发的经典流程，FPGA工程师的主要工作是搭建好硬件平台，提供硬件描述文件xsa给软件工程师，软件工程师在此基础上开发应用程序。本章是一个简单的例子介绍了FPGA和软件工程师协同工作，后续还会牵涉到PS与PL之间的联合调试，较为复杂，也是ZYNQ开发的核心部分。
+This chapter, from the perspectives of both the FPGA engineer and the software engineer, introduces the classic ZYNQ development flow. The FPGA engineer's main work is to build the hardware platform and provide the hardware description file xsa to the software engineer, who then develops applications on this basis. This chapter is a simple example illustrating the collaboration between FPGA and software engineers. Later chapters will involve joint debugging between PS and PL, which is more complex and is the core part of ZYNQ development.
 
-同时也介绍了FSBL，启动文件的制作，SD卡启动方式，QSPI下载及启动方式，Vivado下载BOOT.BIN方式，本章没有FPGA加载文件，后面的应用中会再介绍添加FPGA加载文件制作BOOT.BIN。
+This chapter also introduces FSBL, boot file creation, SD card boot method, QSPI programming and boot method, and Vivado BOOT.BIN programming method. This chapter does not include an FPGA bitstream file; later applications will introduce how to create BOOT.BIN with an FPGA bitstream file.
 
-后续的工程都会以本章节的配置为准，后面不再介绍ZYNQ的基本配置。
+Subsequent projects will be based on the configuration in this chapter, and the basic ZYNQ configuration will not be introduced again.
 
-千里之行，始于足下，相信经过本章的学习，大家对ZYNQ开发有了基本概念，高楼稳不稳，要看地基打的牢不牢，虽然本章较为简单，但也有很多知识点待诸位慢慢消化。加油！！！
+A journey of a thousand miles begins with a single step. After studying this chapter, you should have a basic understanding of ZYNQ development. Whether a tall building is stable depends on whether the foundation is solid. Although this chapter is relatively simple, there are many knowledge points for you to slowly digest. Keep going!!!
