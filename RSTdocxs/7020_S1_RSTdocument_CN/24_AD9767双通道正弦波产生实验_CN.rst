@@ -1,142 +1,142 @@
-AD9767双通道正弦波产生实验
-============================
+AD9767 Dual-Channel Sine Wave Generation Experiment
+=====================================================
 
-**实验Vivado工程为“ad9767_dual_sin_wave”。**
+**The experiment Vivado project is "ad9767_dual_sin_wave".**
 
-本章介绍利用AN9767模块实现两路正弦波产生的实验。
+This chapter introduces the experiment of generating two sine waves using the AN9767 module.
 
-硬件介绍
---------
+Hardware Introduction
+---------------------
 
-双通道14位DA输出模块AN9767采用ANALOG DEVICES公司的AD9767芯片，支持独立双通道、14位、125MSPS的数模转换。模块留有一个40针的排母用于连接FPGA开发板，2个BNC连接器用于模拟信号的输出。
+The dual-channel 14-bit DA output module AN9767 uses the AD9767 chip from ANALOG DEVICES, supporting independent dual-channel, 14-bit, 125MSPS digital-to-analog conversion. The module has a 40-pin female header for connecting to the FPGA development board, and 2 BNC connectors for analog signal output.
 
-AN9767模块实物照片如下：
+The physical photo of the AN9767 module is shown below:
 
 .. image:: images/24_media/image1.png
       
-AN9767模块正面图
+AN9767 module front view
 
 .. image:: images/24_media/image2.png
       
-AN9767模块背面图
+AN9767 module back view
 
-AN9767模块的参数说明
-~~~~~~~~~~~~~~~~~~~~
+AN9767 Module Parameter Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-以下为AN9767双通道DA模块的详细参数:
+The following are the detailed parameters of the AN9767 dual-channel DA module:
 
--  DA转换芯片：AD9767；
+-  DA conversion chip: AD9767;
 
--  通道数：2通道；
+-  Number of channels: 2 channels;
 
--  DA转换位数：14bit；
+-  DA conversion resolution: 14bit;
 
--  DA更新速率：125 MSPS；
+-  DA update rate: 125 MSPS;
 
--  输出电压范围：-5V~+5V；
+-  Output voltage range: -5V~+5V;
 
--  模块PCB层数：4层，独立的电源层和GND层；
+-  Module PCB layers: 4 layers, with independent power and GND layers;
 
--  模块接口：40针2.54mm间距排座，方向向下；
+-  Module interface: 40-pin 2.54mm pitch header, facing downward;
 
--  工作温度：-40°~85° 模块使用芯片均满足工业级温度范围
+-  Operating temperature: -40°~85°, all chips used in the module meet industrial temperature range
 
--  输出接口：2路BNC模拟输出接口（用BNC线可以直接连接到示波器）；
+-  Output interface: 2 BNC analog output interfaces (can be directly connected to an oscilloscope using BNC cables);
 
-AN9767模块的原理框图
-~~~~~~~~~~~~~~~~~~~~
+AN9767 Module Block Diagram
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-AN9767模块的原理设计框图如下：
+The schematic block diagram of the AN9767 module is shown below:
 
 .. image:: images/24_media/image3.png
 
-AD9767芯片简介
-~~~~~~~~~~~~~~
+AD9767 Chip Introduction
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`AD9767 <http://www.bdtic.com/ADI/AD9767.html>`__\ 是双端口、高速、双通道、14位CMOS DAC, 芯片集成两个高品质TxDAC+®内核、一个基准电压源和数字接口电路,采用48引脚小型LQFP封装。器件提供出色的交流和直流性能，同时支持最高125 MSPS的更新速率。\ `AD9767 <http://www.bdtic.com/ADI/AD9767.html>`__\ 的功能框图如下：
+`AD9767 <http://www.bdtic.com/ADI/AD9767.html>`__\ is a dual-port, high-speed, dual-channel, 14-bit CMOS DAC. The chip integrates two high-quality TxDAC+® cores, a voltage reference, and digital interface circuitry in a 48-pin small LQFP package. The device provides excellent AC and DC performance while supporting update rates up to 125 MSPS. The functional block diagram of `AD9767 <http://www.bdtic.com/ADI/AD9767.html>`__\ is shown below:
 
 .. image:: images/24_media/image4.png
       
-电流电压转换及放大
-~~~~~~~~~~~~~~~~~~
+Current-to-Voltage Conversion and Amplification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-AD9767的两路DA输出都为补码形式的电流输出IoutA和IoutB。当AD9767数字输入为满量程时（DAC的输入的14位数据都为高），IoutA输出满量程的电流输出20mA。IoutB输出的电流为0mA。具体的电流和DAC的数据的关系如下公式所示：
+Both DA outputs of the AD9767 are complementary current outputs IoutA and IoutB. When the AD9767 digital input is at full scale (all 14 bits of DAC input data are high), IoutA outputs a full-scale current of 20mA, and IoutB outputs 0mA. The relationship between the current and DAC data is shown in the following formula:
 
 .. image:: images/24_media/image5.png
       
-其中IoutFS=32 x Iref，在AN9767模块设计中,Iref的值由电阻R16的值决定，如果R16=19.2K，那Iref的值就是0.625mA。这样IoutFS的值就是20mA。
+Where IoutFS=32 x Iref. In the AN9767 module design, the value of Iref is determined by the resistance of R16. If R16=19.2K, then Iref is 0.625mA, making IoutFS equal to 20mA.
 
-AD9767输出的电流通过第一级运放AD6045转换成-1V~+1V的电压。具体的转换电路如下图所示：
+The current output from AD9767 is converted to a voltage range of -1V~+1V through the first-stage op-amp AD6045. The specific conversion circuit is shown below:
 
 .. image:: images/24_media/image6.png
       
-第一级运放转换后的-1V~+1V的电压通过第二级运放变换到更高幅度的电压信号，这个运放的幅度大小可以通过调整板上的可调电阻来改变。通过第二级运放，模拟信号的输出范围高达-5V~+5V。
+The -1V~+1V voltage from the first-stage op-amp is then transformed to a higher amplitude voltage signal through the second-stage op-amp. The amplitude of this op-amp can be adjusted using the adjustable resistor on the board. Through the second-stage op-amp, the analog signal output range can reach up to -5V~+5V.
 
 .. image:: images/24_media/image7.png
       
-下表为数字输入信号和各级运放输出后的电压对照表：
+The following table shows the correspondence between digital input signals and the output voltages after each op-amp stage:
 
-+----------------+----------------+----------------+------------------+
-| **D            | **AD           | **第           | **               |
-| AC数据输入值** | 9767电流输出** | 一级运放输出** | 第二级运放输出** |
-+================+================+================+==================+
-| 3              | +20mA          | -1V            | +5V              |
-| fff(14位全高） |                |                |                  |
-+----------------+----------------+----------------+------------------+
-| 0(14位全低）   | -20mA          | +1V            | -5V              |
-+----------------+----------------+----------------+------------------+
-| 2000（中间值） | 0mA            | 0V             | 0V               |
-+----------------+----------------+----------------+------------------+
++--------------------+--------------------+--------------------+--------------------+
+| **DAC              | **AD9767           | **First-stage      | **Second-stage     |
+| Data Input Value** | Current Output**   | Op-amp Output**    | Op-amp Output**    |
++====================+====================+====================+====================+
+| 3fff               | +20mA              | -1V                | +5V                |
+| (14-bit all high)  |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 0 (14-bit all low) | -20mA              | +1V                | -5V                |
++--------------------+--------------------+--------------------+--------------------+
+| 2000 (mid value)   | 0mA                | 0V                 | 0V                 |
++--------------------+--------------------+--------------------+--------------------+
 
 .. _电流电压转换及放大-1:
 
-电流电压转换及放大
+Digital Interface
 ~~~~~~~~~~~~~~~~~~
 
-AD9767芯片的数字接口可以通过芯片的模式管脚(MODE)来配置成双端口模式(Dual)或者交叉(Interleaved)模式。在AN9767模块设计中，AD9767芯片是工作在双端口模式，双通道的DA数字输入接口是独立分开的。双端口模式(Dual)的数据时序图如下图所示：
+The digital interface of the AD9767 chip can be configured as Dual-port mode or Interleaved mode through the chip's mode pin (MODE). In the AN9767 module design, the AD9767 chip operates in Dual-port mode, where the dual-channel DA digital input interfaces are independent and separate. The data timing diagram for Dual-port mode is shown below:
 
 .. image:: images/24_media/image8.png
       
-给AD9767芯片的DA数据通过时钟CLK和写信号WRT的上升沿输入到芯片进行DA转换。
+The DA data is input to the AD9767 chip for DA conversion on the rising edges of the clock CLK and write signal WRT.
 
-程序设计
---------
+Program Design
+--------------
 
-例程中提供了AN9767模块的DA测试程序，通过AN9767模块来实现正弦波信号的输出。
+The example provides a DA test program for the AN9767 module, which implements sine wave signal output through the AN9767 module.
 
-正选波测试程序是通过读取FPGA内部的一个ROM中存储的正选波数据，然后把正选波的数据输出到AN9767模块进行数模的转换，从而得到正选波的模拟信号。正选波测试程序的示意图如下:
+The sine wave test program reads sine wave data stored in a ROM inside the FPGA, then outputs the sine wave data to the AN9767 module for digital-to-analog conversion, thereby generating the analog sine wave signal. The schematic diagram of the sine wave test program is shown below:
 
 .. image:: images/24_media/image9.png
 
-生成ROM初始化文件
-~~~~~~~~~~~~~~~~~
+Generating the ROM Initialization File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-程序中我们会用到一个ROM用于存储1024个14位的正弦波数据,首先我们需要准备ROM的初始化文件(如果是ALTERA开发板的话是mif文件，如果是Xilinx开发板的话是coe文件)。以下为生成正弦波ROM数据文件的方法：
+The program uses a ROM to store 1024 14-bit sine wave data points. First, we need to prepare the ROM initialization file (mif file for ALTERA development boards, or coe file for Xilinx development boards). The following describes the method for generating the sine wave ROM data file:
 
-在软件工具及驱动文件夹下找到工具，其图标如下所示：
+Find the tool in the software tools and drivers folder. Its icon is shown below:
 
 .. image:: images/24_media/image10.png
       
-1. 双击.exe打开工具，打开界面如下：
+1. Double-click the .exe to open the tool. The interface is shown below:
 
 .. image:: images/24_media/image11.png
       
-2. 可以根据需要自选波形，本例程中选择正弦波，数据长度1024，数据位宽14，其它默认：
+2. You can select the waveform as needed. In this example, select sine wave, data length 1024, data bit width 14, and leave the rest as default:
 
 .. image:: images/24_media/image12.png
       
-3. 点击保存按钮，将生成的数据文件保存到工程目录文件下（注意保存的文件类型）：
+3. Click the save button to save the generated data file to the project directory (note the file type when saving):
 
 .. image:: images/24_media/image13.png
       
-4. 保存后出现如下对话框表示保存成功，点击确定后关闭工具
+4. After saving, the following dialog box appears indicating a successful save. Click OK and close the tool.
 
 .. image:: images/24_media/image14.png
             
-将 .coe文件保存到生成的Rom IP核中即可，在字符显示实验教程中已做介绍，这里不再重复。
+Save the .coe file to the generated ROM IP core. This has been described in the character display experiment tutorial and will not be repeated here.
 
-双通道正弦波发生程序
-~~~~~~~~~~~~~~~~~~~~~
+Dual-Channel Sine Wave Generation Program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: verilog
 
@@ -205,30 +205,30 @@ AD9767芯片的数字接口可以通过芯片的模式管脚(MODE)来配置成�
  endmodule
 
 
-程序中通过一个PLL IP来产生125M的DA输出时钟，然后就是循环读取存放在ROM中的1024个数据，并同时输出到通道1和通道2的DA数据线上。程序中可以通过地址的加1，加4,或者加128来选择输出不同的频率的正弦波。
+The program uses a PLL IP to generate a 125M DA output clock, then cyclically reads 1024 data points stored in ROM, and simultaneously outputs them to the DA data lines of both Channel 1 and Channel 2. The program can output sine waves of different frequencies by incrementing the address by 1, 4, or 128.
 
-实验现象
---------
+Experimental Results
+--------------------
 
-将AN9767模块插入开发板的J11扩展口，用我们提供的BNC线连接AN9767的输出到示波器的输入如下图，然后开发板上电,下载程序就可以从示波器上观察从DA模块输出的模拟信号的波形了。
+Insert the AN9767 module into the J11 expansion port of the development board, connect the AN9767 output to the oscilloscope input using the provided BNC cable as shown below, then power on the development board and download the program to observe the analog signal waveform output from the DA module on the oscilloscope.
 
 .. image:: images/24_media/image15.png
       
-AN9767与AX7020/AX7010连接图
+AN9767 connected to AX7020/AX7010 diagram
 
-示波器上看到的正弦波如下：
+The sine wave observed on the oscilloscope is shown below:
 
 .. image:: images/24_media/image16.png
       
-我们可以把程序中的地址修改成+4的方式，如下修改，这样一个正弦波的输出的点为256个，输出的正弦波的频率会提高4倍：
+We can modify the address increment in the program to +4 as shown below. This way, one sine wave output consists of 256 points, and the frequency of the output sine wave will increase by 4 times:
 
 .. image:: images/24_media/image17.png
       
-程序修改后，重新下载FPGA后，正弦波的频率变高，示波器显示的波形如下：
+After modifying the program and re-downloading to the FPGA, the sine wave frequency increases. The waveform displayed on the oscilloscope is shown below:
 
 .. image:: images/24_media/image18.png
       
-用户也可以通过调节AN9767模块上的可调电阻来改变2个通道输出波形的幅度。
+Users can also adjust the amplitude of the two channel output waveforms by adjusting the adjustable resistors on the AN9767 module.
 
 .. image:: images/24_media/image19.png
       
