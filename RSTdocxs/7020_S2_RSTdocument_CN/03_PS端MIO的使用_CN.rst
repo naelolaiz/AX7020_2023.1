@@ -1,256 +1,255 @@
-PS端MIO的使用
-===============
+Using PS MIO
+=============
 
-**实验Vivado工程为“ps_mio”。**
+**The Vivado project for this experiment is "ps_mio".**
 
-本章介绍PS端MIO的操作，MIO是基础的外设IO，可以连接诸如SPI，I2C，UART，GPIO等，通过VIVADO软件设置，软件可以将信号通过MIO导出，同样也可以将信号通过EMIO连接到PL端的引脚上。
+This chapter introduces the operation of PS MIO. MIO is a basic peripheral IO that can be connected to peripherals such as SPI, I2C, UART, GPIO, etc. Through VIVADO software configuration, signals can be routed out via MIO, and signals can also be connected to PL pins via EMIO.
 
-MIO共有两个BANK，BANK0有16个引脚，BANK1为38个引脚，共54个引脚，两个BANK的电压需要注意选择正确。
+MIO has two BANKs. BANK0 has 16 pins, and BANK1 has 38 pins, for a total of 54 pins. The voltage of the two BANKs must be configured correctly.
 
 .. image:: images/03_media/image1.png
       
-本实验通过实现PS端LED灯的闪烁演示MIO的操作。
+This experiment demonstrates MIO operation by implementing PS LED blinking.
 
-原理介绍
---------
+Principle Introduction
+----------------------
 
-先来了解GPIO的BANK分布，在UG585文档GPIO一章中可以看到GPIO是有4个BANK，注意与MIO的BANK区分。
-BANK0控制32个信号，BANK1控制22个信号，总共是MIO的54个引脚，也就是诸如SPI,I2C,USB,SD等PS端外设接口；
-BANK2和BANK3共能控制64个PL端引脚，注意每一组都有三个信号，输入EMIOGPIOI，输出EMIOGPIOO，输出使能EMIOGPIOTN，类似于三态门，共192个信号。可以连接到PL端引脚，通过PS控制信号。
+First, let's understand the GPIO BANK distribution. In the GPIO chapter of the UG585 document, you can see that GPIO has 4 BANKs. Note the distinction from MIO BANKs.
+BANK0 controls 32 signals, and BANK1 controls 22 signals, totaling 54 MIO pins, which correspond to PS peripheral interfaces such as SPI, I2C, USB, SD, etc.
+BANK2 and BANK3 can control a total of 64 PL pins. Note that each group has three signals: input EMIOGPIOI, output EMIOGPIOO, and output enable EMIOGPIOTN, similar to a tri-state gate, totaling 192 signals. These can be connected to PL pins and controlled by the PS.
 
 .. image:: images/03_media/image2.png
       
-Vivado工程建立
---------------
+Vivado Project Setup
+--------------------
 
-本实验基于 “ps_hello”工程另存为”ps_mio”。如果想要控制PS端的MIO是需要将 GPIO MIO打开的，前面已经配置
+This experiment is based on the "ps_hello" project saved as "ps_mio". To control the PS MIO, GPIO MIO needs to be enabled, which has already been configured previously.
 
 .. image:: images/03_media/image3.png
             
-1. 由于不需要生成FPGA烧写文件，直接点击FileExportExport Hardware，不用勾选include bitstream选项，生成Hardware信息，此时会生成新的Vitis目录。
+1. Since there is no need to generate an FPGA bitstream file, directly click File > Export > Export Hardware without checking the include bitstream option to generate the Hardware information. A new Vitis directory will be generated at this point.
 
 .. image:: images/03_media/image4.png
             
-软件工程师工作内容
-------------------
+Software Engineer Tasks
+-----------------------
 
-以下为软件工程师负责内容。
+The following is the content handled by software engineers.
 
-Vitis程序开发
--------------
+Vitis Program Development
+-------------------------
 
-MIO点亮PS端LED灯
-~~~~~~~~~~~~~~~~
+MIO Lighting PS LED
+~~~~~~~~~~~~~~~~~~~~
 
-根据原理图得知，AX7020和AX7010的LED灯连接到了PS端的MIO0和MIO13，可以根据相应的开发板MIO的位置控制LED灯。
+According to the schematic, the LEDs of AX7020 and AX7010 are connected to PS MIO0 and MIO13. You can control the LEDs based on the corresponding MIO positions on the development board.
 
 .. image:: images/03_media/image5.png
       
-AX7020/AX7010原理图
+AX7020/AX7010 Schematic
 
-1. 点击ToolsLaunch Vitis进入Vitis
+1. Click Tools > Launch Vitis to enter Vitis
 
 .. image:: images/03_media/image6.png
             
-2. 新建platform工程过程不再赘述，参考“PS定时器中断实验” 一章
+2. The process of creating a new platform project will not be repeated here. Please refer to the "PS Timer Interrupt Experiment" chapter.
 
 .. image:: images/03_media/image7.png
       
-3. 下图为GPIO的控制框图，实验中会用到输出部分的寄存器，数据寄存器DATA，数据掩码寄存器MASK_DATA_LSW，MASK_DATA_MSW，方向控制寄存器DIRM，输出使能控制器OEN。
+3. The figure below shows the GPIO control block diagram. The experiment will use the output section registers: data register DATA, data mask registers MASK_DATA_LSW and MASK_DATA_MSW, direction control register DIRM, and output enable controller OEN.
 
 .. image:: images/03_media/image8.png
       
-4. 再来看GPIO的寄存器，可以打开UG585文档的最下面Register Details，找到General Purpose I/O部分。
+4. Now let's look at the GPIO registers. You can open the Register Details at the bottom of the UG585 document and find the General Purpose I/O section.
 
 .. image:: images/03_media/image9.png
       
-5. 实验中可能会用到的寄存器：
+5. Registers that may be used in the experiment:
 
-数据掩码寄存器，例如MIO 9在GPIO的BANK0，可以屏蔽其他BANK0中的其他31位。
+Data mask register: For example, MIO 9 is in GPIO BANK0, and you can mask the other 31 bits in BANK0.
 
 .. image:: images/03_media/image10.png
       
-方向寄存器，控制数据的方向
+Direction register, controlling the data direction
 
 .. image:: images/03_media/image11.png
       
-输出使能寄存器
+Output enable register
 
 .. image:: images/03_media/image12.png
       
-数据寄存器，有效的数据
+Data register, valid data
 
 .. image:: images/03_media/image13.png
       
-具体的寄存器含义就不一一讲解了，大家自行研究。
+The specific meanings of each register will not be explained one by one here. Please study them on your own.
 
-6. 一开始编写代码可能会无从下手，我们可以导入Xilinx提供的example工程，点开BSP，找到ps7_gpio_0，点击Import Examples
+6. When first writing code, you may not know where to start. We can import an example project provided by Xilinx. Open BSP, find ps7_gpio_0, and click Import Examples.
 
 .. image:: images/03_media/image14.png
       
-在弹出窗口选择“xgpiops_polled_example”，点击OK
+In the popup window, select "xgpiops_polled_example" and click OK.
 
 .. image:: images/03_media/image15.png
       
-会出现一个新的APP工程
+A new APP project will appear.
 
 .. image:: images/03_media/image16.png
       
-7. 这个example工程是测试PS端MIO的输入输出的，由于开发板PS端的LED是MIO0和MIO13，需要在文件中修改Output_pin为0，测试MIO0的LED灯。
+7. This example project tests the input and output of PS MIO. Since the PS LEDs on the development board are MIO0 and MIO13, you need to modify Output_pin to 0 in the file to test the MIO0 LED.
 
 .. image:: images/03_media/image17.png
       
-由于只测试LED灯，也就是输出，我们把输入功能注释掉。保存文件。
+Since we are only testing the LED, i.e., the output, we comment out the input function. Save the file.
 
 .. image:: images/03_media/image18.png
       
-8. 编译工程
+8. Build the project
 
 .. image:: images/03_media/image19.png
             
-9. Run AsLaunch on Hardware(Single Application Debug)，下载结束后，即可看到PS_LED1快速闪烁16次
+9. Run As > Launch on Hardware (Single Application Debug). After the download is complete, you can see PS_LED1 blinking rapidly 16 times.
 
 .. image:: images/03_media/image20.png
             
-大家也可以改成MIO13观察PS_LED2的变化。
+You can also change it to MIO13 to observe the change of PS_LED2.
 
-10. 虽然用官方的例子比较方便，但是它的代码看起来比较臃肿，我们可以通过学习它的方法，自己简化写一遍。我们新建一个APP工程。可以在空白处右键NewApplication Project。在ps_led_test的helloworld.c中修改。其实程序步骤很简单，初始化GPIO设置方向输出使能控制GPIO输出值。
+10. Although using the official example is convenient, its code looks rather bloated. We can learn from its approach and write a simplified version ourselves. Let's create a new APP project. You can right-click in the blank area and select New > Application Project. Modify it in the helloworld.c of ps_led_test. The program steps are actually quite simple: initialize GPIO, set direction, enable output, and control GPIO output value.
 
 .. image:: images/03_media/image21.png
       
-11. 选择platform
+11. Select platform
 
 .. image:: images/03_media/image22.png
       
-12. 选择Domain，Domain的含义类似于BSP
+12. Select Domain. The concept of Domain is similar to BSP.
 
 .. image:: images/03_media/image23.png
       
-13. 模板选择Hellow World即可
+13. Select Hello World as the template.
 
 .. image:: images/03_media/image24.png
       
-14. 可以看到多了一个APP工程，仍然是基于名为standalone on ps7_cortexa9_0的BSP，也就是一个Domain，与前面的example工程共用一个BSP
+14. You can see that a new APP project has been added. It is still based on the BSP named standalone on ps7_cortexa9_0, which is a Domain, sharing the same BSP with the previous example project.
 
 .. image:: images/03_media/image25.png
             
-15. 可以将例程的代码复制到helloworld.c中，保存并Build Project
+15. You can copy the example code to helloworld.c, save and Build Project.
 
 .. image:: images/03_media/image26.png
             
-16. 下载方法与前面一样，就可以看到PS端的LED1和LED2灯开始闪烁。
+16. The download method is the same as before, and you can see PS LED1 and LED2 start blinking.
 
-MIO按键中断
-~~~~~~~~~~~
+MIO Button Interrupt
+~~~~~~~~~~~~~~~~~~~~
 
-前面介绍了MIO作为输出控制LED灯，这里讲一下利用MIO作为按键输入控制LED灯。
+The previous section introduced using MIO as output to control LEDs. Here we will discuss using MIO as button input to control LEDs.
 
-1. 通过UG585文档看下GPIO的结构图，中断的寄存器：
+1. Let's look at the GPIO structure diagram from the UG585 document. The interrupt registers are:
 
-INT_MASK：中断掩码
+INT_MASK: Interrupt mask
 
-INT_DIS: 中断关闭
+INT_DIS: Interrupt disable
 
-INT_EN: 中断使能
+INT_EN: Interrupt enable
 
-INT_TYPE: 中断类型，设置电平敏感还是边沿敏感
+INT_TYPE: Interrupt type, setting level-sensitive or edge-sensitive
 
-INT_POLARITY: 中断极性，设置低电平或下降沿还是高电平或上升沿
+INT_POLARITY: Interrupt polarity, setting low level/falling edge or high level/rising edge
 
-INT_ANY: 边沿触发方式，需要INT_TYPE设置为边沿敏感才能使用
+INT_ANY: Edge trigger mode, requires INT_TYPE to be set to edge-sensitive to use
 
-设置中断产生方式时需要INT_TYPE、INT_POLARITY、INT_ANY配合使用。具体寄存器含义请参考UG585 Register Details部分。
+When configuring the interrupt generation method, INT_TYPE, INT_POLARITY, and INT_ANY need to be used together. For specific register meanings, please refer to the UG585 Register Details section.
 
 .. image:: images/03_media/image27.png
       
-在原理图中可以看出PS端的按键接在了MIO50和MIO51，本实验采用MIO50
+From the schematic, you can see that the PS buttons are connected to MIO50 and MIO51. This experiment uses MIO50.
 
 |image1|\ |image2|
 
-AX7020/AX7010原理图
+AX7020/AX7010 Schematic
 
-2. 本实验设计为接下按键LED灯亮，再按下LED灭。
+2. This experiment is designed so that pressing the button turns the LED on, and pressing it again turns the LED off.
 
-主程序设计流程如下：
+The main program design flow is as follows:
 
-GPIO初始化设置按键和LED方向设置产生中断方式设置中断打开中断控制器打开中断异常打开GPIO中断判断KEY_FLAG值，是1，写LED
+GPIO initialization -> Set button and LED direction -> Set interrupt generation method -> Set interrupt -> Enable interrupt controller -> Enable interrupt exception -> Enable GPIO interrupt -> Check KEY_FLAG value, if 1, write LED
 
-中断处理流程：
+Interrupt handling flow:
 
-查询中断状态寄存器判断状态清除中断设置KEY_FLAG值
+Query interrupt status register -> Check status -> Clear interrupt -> Set KEY_FLAG value
 
-3. 新建Vitis工程
+3. Create a new Vitis project
 
 .. image:: images/03_media/image30.png
       
-4. 定义PS按键编号为50，PS LED为0
+4. Define the PS button number as 50 and PS LED as 0
 
 .. image:: images/03_media/image31.png
       
-5. 在main函数中，设置LED和按键，将按键中断类型设置为上升沿产生中断。在本实验中，即按键信号的上升沿产生中断。
+5. In the main function, set up the LED and button, and configure the button interrupt type to trigger on the rising edge. In this experiment, the rising edge of the button signal generates an interrupt.
 
 .. image:: images/03_media/image32.png
       
-6. 中断控制器设置函数IntrInitFuntions是参考PS定时器中断实验所做，而下面的语句是设置中断优先级和触发方式。即操作ICDIPR和ICDICFR寄存器。
+6. The interrupt controller setup function IntrInitFuntions is based on the PS timer interrupt experiment, and the following statements set the interrupt priority and trigger mode, i.e., operating the ICDIPR and ICDICFR registers.
 
 .. image:: images/03_media/image33.png
       
-7. 在中断服务程序GpioHandler中，判断中断状态寄存器，清除中断，并将按键标志置1。
+7. In the interrupt service routine GpioHandler, check the interrupt status register, clear the interrupt, and set the button flag to 1.
 
 .. image:: images/03_media/image34.png
       
-8. 在main函数中，判断按键标志key_flag，向LED写入数据。
+8. In the main function, check the button flag key_flag and write data to the LED.
 
 .. image:: images/03_media/image35.png
       
-9.  编译工程并下载程序
+9.  Build the project and download the program
 
-10. 观察实验现象，按下PS端按键，就可以控制PS端LED的亮灭。
+10. Observe the experimental results. Pressing the PS button can control the PS LED on and off.
 
 ..
 
-   AX7020/AX7010开发板丝印为PS KEY1；
+   AX7020/AX7010 development board silkscreen label is PS KEY1;
 
-   PS端LED灯位置： AX7020/AX7010开发板丝印为PS LED1;
+   PS LED location: AX7020/AX7010 development board silkscreen label is PS LED1;
 
-知识点分享
-----------
+Knowledge Sharing
+-----------------
 
-1. 在platform中bsp的include文件夹下包含了xilinx的各种头文件，如本章用到的GPIO，用到了xgpiops.h，在此文件中可以看到各种宏定义，在调用GPIO函数时可以使用这些宏定义，提高可读性。
+1. The include folder of the BSP in the platform contains various Xilinx header files. For example, the GPIO used in this chapter uses xgpiops.h. In this file, you can see various macro definitions that can be used when calling GPIO functions to improve readability.
 
 .. image:: images/03_media/image36.png
       
-同时也包含外设自带的函数声明
+It also contains the peripheral's built-in function declarations.
 
 .. image:: images/03_media/image37.png
       
-2. 在xparameters.h头文件中定义了各个外设的基地址，器件ID，中断等
+2. The xparameters.h header file defines the base addresses, device IDs, interrupts, etc. for each peripheral.
 
 .. image:: images/03_media/image38.png
       
-比如程序中的DEVICE_ID宏定义就是在这个文件里找到的。
+For example, the DEVICE_ID macro definition in the program is found in this file.
 
 .. image:: images/03_media/image39.png
       
-3. 在libsrc文件夹中，包含外设函数的定义，使用说明
+3. The libsrc folder contains peripheral function definitions and usage instructions.
 
 .. image:: images/03_media/image40.png
       
-4. 在src文件夹下的lscript.ld中，定义了可用memory空间，栈和堆空间大小等，可根据需要修改。
+4. In the lscript.ld file under the src folder, the available memory space, stack and heap sizes, etc. are defined and can be modified as needed.
 
 .. image:: images/03_media/image41.png
       
-5. 把鼠标光标放到宏定义或函数上，按下F3即可看到在哪里定义的，也可以按Ctrl+鼠标左键进入。比如下面的DEVICE_ID即可进入xparameter.h中
+5. Place the mouse cursor on a macro definition or function and press F3 to see where it is defined. You can also hold Ctrl and left-click to navigate to it. For example, clicking on DEVICE_ID below will navigate to xparameter.h.
 
 .. image:: images/03_media/image42.png
       
 .. image:: images/03_media/image43.png
       
-本章小结
---------
+Chapter Summary
+---------------
 
-本章介绍了MIO的输入输出控制，以及GPIO的使用，相信大家也有了一定的认识。在学习过程中，一定要多看文档，结合模块结构以及寄存器含义加深理解。参考文档UG585。
+This chapter introduced MIO input/output control and GPIO usage. We hope you now have a good understanding of these concepts. During the learning process, be sure to read the documentation frequently, and deepen your understanding by studying the module structure and register meanings. Reference document: UG585.
 
 .. |image1| image:: images/03_media/image28.png
 .. |image2| image:: images/03_media/image29.png
-      
