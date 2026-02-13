@@ -1,67 +1,67 @@
-AD9238双通道波形显示实验
-==========================
+AD9238 Dual-Channel Waveform Display Experiment
+=================================================
 
-**实验Vivado工程为“ad9238_hdmi_test”。**
+**The Vivado project for this experiment is "ad9238_hdmi_test".**
 
-硬件介绍
---------
+Hardware Introduction
+---------------------
 
-两通道AD模块说明
-~~~~~~~~~~~~~~~~
+Dual-Channel AD Module Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-黑金高速AD模块AN9238为2路65MSPS，12位的模拟信号转数字信号模块。模块的AD转换采用了ADI公司的AD9238芯片，
-AD9238芯片支持2路AD输入转换，所以1片AD9238芯片一共支持2路的AD输入转换。模拟信号输入支持单端模拟信号输入，输入电压范围为-5V~+5V，接口为SMA插座。
+The ALINX high-speed AD module AN9238 is a 2-channel 65MSPS, 12-bit analog-to-digital conversion module. The module uses the AD9238 chip from ADI for AD conversion.
+The AD9238 chip supports 2-channel AD input conversion, so one AD9238 chip supports a total of 2 AD input channels. The analog signal input supports single-ended analog signal input with an input voltage range of -5V to +5V, using SMA connectors.
 
-模块有一个标准2.54mm间距的40针的排母，用于连接FPGA开发板，
-AN9238模块实物照片如下：
+The module has a standard 2.54mm pitch 40-pin female header for connecting to the FPGA development board.
+The AN9238 module photo is shown below:
 
 .. image:: images/22_media/image1.png
       
-AN9238模块实物图
+AN9238 module photo
 
-**参数说明**
+**Parameter Description**
 
-以下为AN9238 高速AD模块的详细参数:
+The following are the detailed parameters of the AN9238 high-speed AD module:
 
--  AD转换芯片：1片AD9238
+-  AD conversion chip: 1x AD9238
 
--  AD转换通道：2路;
+-  AD conversion channels: 2 channels;
 
--  AD采样速率： 65MSPS；
+-  AD sampling rate: 65MSPS;
 
--  AD采样数据位数： 12位；
+-  AD sampling data width: 12 bits;
 
--  数字接口电平标准：+3.3V的CMOS电平
+-  Digital interface level standard: +3.3V CMOS level
 
--  AD模拟信号输入范围：-5V~+5V；
+-  AD analog signal input range: -5V to +5V;
 
--  模拟信号输入接口：SMA接口；
+-  Analog signal input interface: SMA interface;
 
--  测量精度：10mV左右；
+-  Measurement accuracy: approximately 10mV;
 
--  工作温度：-40°~85°；
+-  Operating temperature: -40° to 85°;
 
-模块功能说明
-~~~~~~~~~~~~
+Module Function Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-AN9238模块的原理设计框图如下：
+The schematic block diagram of the AN9238 module is shown below:
 
 .. image:: images/22_media/image2.png
 
-关于AD9238的电路具体参考设计请参考AD9238的芯片手册。
+For the detailed reference design of the AD9238 circuit, please refer to the AD9238 chip datasheet.
 
-1) 单端输入及运放电路
+1) Single-ended input and op-amp circuit
 
-单端输入AD1和AD2通过J5或者J6两个SMA头输入，单端输入的电压为-5V~+5V。
+The single-ended inputs AD1 and AD2 are fed through the J5 or J6 SMA connectors, with an input voltage range of -5V to +5V.
 
-板上通过运放AD8065芯片和分压电阻把-5V~+5V输入的电压缩小成-1V~+1V。如果用户想输入更宽范围的电压输入只要修改前端的分压电阻的阻值。
+The on-board AD8065 op-amp chip and voltage divider resistors scale the -5V to +5V input voltage down to -1V to +1V. If users want to input a wider voltage range, they only need to modify the front-end voltage divider resistor values.
 
 .. image:: images/22_media/image3.png
       
-下表为模拟输入信号和AD8065运放输出后的电压对照表：
+The following table shows the voltage comparison between the analog input signal and the AD8065 op-amp output:
 
 +--------------------------------+-------------------------------------+
-| **AD模拟输入值**               | **AD8065运放输出**                  |
+| **AD Analog Input Value**      | **AD8065 Op-amp Output**            |
 +================================+=====================================+
 | -5V                            | -1V                                 |
 +--------------------------------+-------------------------------------+
@@ -70,17 +70,17 @@ AN9238模块的原理设计框图如下：
 | +5V                            | +1V                                 |
 +--------------------------------+-------------------------------------+
 
-2) 单端转差分及AD转换
+2) Single-ended to differential conversion and AD conversion
 
--1V~+1V的输入电压通过AD8138芯片转换成差分信号（VIN+ − VIN−），差分信号的共模电平由AD的CML管脚决定。
+The -1V to +1V input voltage is converted to a differential signal (VIN+ - VIN-) through the AD8138 chip. The common-mode level of the differential signal is determined by the CML pin of the AD.
 
 .. image:: images/22_media/image4.png
       
-下表为模拟输入信号到AD8138差分输出后的电压对照表：
+The following table shows the voltage comparison from analog input signal to AD8138 differential output:
 
 +----------------+------------------------+----------------------------+
-| **AD           | **AD8065运放输出**     | **AD813                    |
-| 模拟输入值**   |                        | 8差分输出**\ （VIN+−VIN−） |
+| **AD Analog    | **AD8065 Op-amp        | **AD8138 Differential      |
+| Input Value**  | Output**               | Output**\ (VIN+ - VIN-)   |
 +================+========================+============================+
 | -5V            | -1V                    | -1V                        |
 +----------------+------------------------+----------------------------+
@@ -89,18 +89,19 @@ AN9238模块的原理设计框图如下：
 | +5V            | +1V                    | :sub:`+`\ 1V               |
 +----------------+------------------------+----------------------------+
 
-3) AD9238转换
+3) AD9238 Conversion
 
-默认AD是配置成offset binary的，AD转换的值如下图所示：
+By default, the AD is configured in offset binary mode. The AD conversion values are shown in the figure below:
 
 .. image:: images/22_media/image5.png
       
-在模块电路设计中，AD9238的VREF的值为1V，这样最终的模拟信号输入和AD转换的数据如下：
+In the module circuit design, the VREF value of the AD9238 is 1V. The final analog signal input and AD conversion data are as follows:
 
 +------------+-------------------+--------------------+---------------+
-| **AD模     | **AD8055运放**    | **AD8138差分输出** | **AD9         |
-| 拟输入值** |                   |                    | 238数字输出** |
-|            | **输出**          | （VIN+−VIN−）      |               |
+| **AD       | **AD8055 Op-amp** | **AD8138           | **AD9238      |
+| Analog     |                   | Differential       | Digital       |
+| Input      | **Output**        | Output**           | Output**      |
+| Value**    |                   | (VIN+ - VIN-)      |               |
 +============+===================+====================+===============+
 | -5V        | -1V               | -1V                | 000000000000  |
 +------------+-------------------+--------------------+---------------+
@@ -109,117 +110,117 @@ AN9238模块的原理设计框图如下：
 | +5V        | +1V               | +1V                | 11111111111   |
 +------------+-------------------+--------------------+---------------+
 
-从表中我们可以看出，-5V输入的时候，AD9238转换的数字值最小，+5V输入的时候，AD9238转换的数字值最大。
+From the table, we can see that when the input is -5V, the AD9238 digital conversion value is at its minimum, and when the input is +5V, the AD9238 digital conversion value is at its maximum.
 
-4) AD9238数字输出时序
+4) AD9238 Digital Output Timing
 
-AD9238双通道AD的数字输出为+3.3V的CMOS输出模式，2路通道(A和B）独立的数据和时钟。AD数据在时钟的上降沿转换数据，FPGA端可用AD时钟的采样AD数据。
+The digital output of the AD9238 dual-channel AD is in +3.3V CMOS output mode, with 2 channels (A and B) having independent data and clock signals. The AD data is converted on the rising and falling edges of the clock, and the FPGA can sample the AD data using the AD clock.
 
 .. image:: images/22_media/image6.png
       
-程序设计
---------
+Program Design
+--------------
 
-本实验显示部分是基于前面的HDMI显示彩条的实验，在彩条上叠加网格线和波形,
-整个项目的框图如下图所示：
+The display portion of this experiment is based on the previous HDMI color bar display experiment, with grid lines and waveforms overlaid on the color bars.
+The block diagram of the entire project is shown below:
 
 .. image:: images/22_media/image7.png
 
-ad9238_sample模块主要完成AN9238的单路数据转换。最后的数据只取高8位的数据，数据宽度转换到8bit（为了跟其它8位的AD模块程序兼容）。另外每次采集1280个数据，然后等待一段时间再继续采集下面的1280个数据。
+The ad9238_sample module mainly completes the single-channel data conversion of the AN9238. Only the upper 8 bits of the final data are used, converting the data width to 8 bits (for compatibility with other 8-bit AD module programs). Additionally, 1280 data samples are collected each time, then after waiting for a period, the next 1280 data samples are collected.
 
 +---------------+------+-------+--------------------------------------+
-| 信号名称      | 方向 | 宽度  | 说明                                 |
+| Signal Name   | Dir  | Width | Description                          |
 |               |      | (bit) |                                      |
 +===============+======+=======+======================================+
-| adc_clk       | in   | 1     | adc系统时钟                          |
+| adc_clk       | in   | 1     | ADC system clock                     |
 +---------------+------+-------+--------------------------------------+
-| rst           | in   | 1     | 异步复位，高复位                     |
+| rst           | in   | 1     | Async reset, active high             |
 +---------------+------+-------+--------------------------------------+
-| adc_data      | in   | 12    | ADC数据输入                          |
+| adc_data      | in   | 12    | ADC data input                       |
 +---------------+------+-------+--------------------------------------+
-| adc_buf_wr    | out  | 1     | ADC数据写使能                        |
+| adc_buf_wr    | out  | 1     | ADC data write enable                |
 +---------------+------+-------+--------------------------------------+
-| adc_buf_addr  | out  | 12    | ADC数据写地址                        |
+| adc_buf_addr  | out  | 12    | ADC data write address               |
 +---------------+------+-------+--------------------------------------+
-| adc_buf_data  | out  | 8     | 无符号8位ADC数据                     |
+| adc_buf_data  | out  | 8     | Unsigned 8-bit ADC data              |
 +---------------+------+-------+--------------------------------------+
 
-ad7606_sample模块端口
+ad7606_sample module ports
 
-grid_display模块主要完成视频图像的网格线叠加，本实验将彩条视频输入，然后叠加一个网格后输出，
-这一块网格区域提供给后面的波形显示模块使用，这个网格区域是位于显示器水平方向（从左到右）从9到1018，垂直方向（从上到下）从9到308的视频显示位置。
+The grid_display module mainly completes the grid line overlay on video images. In this experiment, color bar video is input, and a grid is overlaid before output.
+This grid area is provided for the subsequent waveform display module. The grid area is located at horizontal positions (left to right) from 9 to 1018, and vertical positions (top to bottom) from 9 to 308 on the display.
 
 .. image:: images/22_media/image8.png
       
 +-------------+------+-------+----------------------------------------+
-| 信号名称    | 方向 | 宽度  | 说明                                   |
+| Signal Name | Dir  | Width | Description                            |
 |             |      | (bit) |                                        |
 +=============+======+=======+========================================+
-| pclk        | in   | 1     | 像素时钟                               |
+| pclk        | in   | 1     | Pixel clock                            |
 +-------------+------+-------+----------------------------------------+
-| rst_n       | in   | 1     | 异步复位，低电平复位                   |
+| rst_n       | in   | 1     | Async reset, active low                |
 +-------------+------+-------+----------------------------------------+
-| i_hs        | in   | 1     | 视频行同步输入                         |
+| i_hs        | in   | 1     | Video horizontal sync input            |
 +-------------+------+-------+----------------------------------------+
-| i_vs        | in   | 1     | 视频场同步输入                         |
+| i_vs        | in   | 1     | Video vertical sync input              |
 +-------------+------+-------+----------------------------------------+
-| i_de        | in   | 1     | 视频数据有效输入                       |
+| i_de        | in   | 1     | Video data valid input                 |
 +-------------+------+-------+----------------------------------------+
-| i_data      | in   | 24    | 视频数据输入                           |
+| i_data      | in   | 24    | Video data input                       |
 +-------------+------+-------+----------------------------------------+
-| o_hs        | out  | 1     | 带网格视频行同步输出                   |
+| o_hs        | out  | 1     | Video horizontal sync output with grid |
 +-------------+------+-------+----------------------------------------+
-| o_vs        | out  | 1     | 带网格视频场同步输出                   |
+| o_vs        | out  | 1     | Video vertical sync output with grid   |
 +-------------+------+-------+----------------------------------------+
-| o_de        | out  | 1     | 带网格视频数据有效输出                 |
+| o_de        | out  | 1     | Video data valid output with grid      |
 +-------------+------+-------+----------------------------------------+
-| o_data      | out  | 24    | 带网格视频数据输出                     |
+| o_data      | out  | 24    | Video data output with grid            |
 +-------------+------+-------+----------------------------------------+
 
-grid_display模块端口
+grid_display module ports
 
-wav_display显示模块主要是完成波形数据的叠加显示，模块内含有一个双口ram，写端口是由ADC采集模块写入，读端口是显示模块。在网格显示区域有效的时候，每行显示都会读取RAM中存储的AD数据值，跟Y坐标比较来判断显示波形或者不显示。
+The wav_display module mainly completes the overlay display of waveform data. The module contains a dual-port RAM, where the write port is written by the ADC acquisition module, and the read port is used by the display module. When the grid display area is active, each display line reads the AD data values stored in RAM and compares them with the Y coordinate to determine whether to display the waveform or not.
 
 .. image:: images/22_media/image9.png
       
 +--------------+------+-------+---------------------------------------+
-| 信号名称     | 方向 | 宽度  | 说明                                  |
+| Signal Name  | Dir  | Width | Description                           |
 |              |      | (bit) |                                       |
 +==============+======+=======+=======================================+
-| pclk         | in   | 1     | 像素时钟                              |
+| pclk         | in   | 1     | Pixel clock                           |
 +--------------+------+-------+---------------------------------------+
-| rst_n        | in   | 1     | 异步复位，低电平复位                  |
+| rst_n        | in   | 1     | Async reset, active low               |
 +--------------+------+-------+---------------------------------------+
-| wave_color   | in   | 24    | 波形颜色，rgb                         |
+| wave_color   | in   | 24    | Waveform color, RGB                   |
 +--------------+------+-------+---------------------------------------+
-| adc_clk      | in   | 1     | adc模块时钟                           |
+| adc_clk      | in   | 1     | ADC module clock                      |
 +--------------+------+-------+---------------------------------------+
-| adc_buf_wr   | in   | 1     | adc数据写使能                         |
+| adc_buf_wr   | in   | 1     | ADC data write enable                 |
 +--------------+------+-------+---------------------------------------+
-| adc_buf_addr | in   | 12    | adc数据写地址                         |
+| adc_buf_addr | in   | 12    | ADC data write address                |
 +--------------+------+-------+---------------------------------------+
-| adc_buf_data | in   | 8     | adc数据，无符号数                     |
+| adc_buf_data | in   | 8     | ADC data, unsigned                    |
 +--------------+------+-------+---------------------------------------+
-| i_hs         | in   | 1     | 视频行同步输入                        |
+| i_hs         | in   | 1     | Video horizontal sync input           |
 +--------------+------+-------+---------------------------------------+
-| i_vs         | in   | 1     | 视频场同步输入                        |
+| i_vs         | in   | 1     | Video vertical sync input             |
 +--------------+------+-------+---------------------------------------+
-| i_de         | in   | 1     | 视频数据有效输入                      |
+| i_de         | in   | 1     | Video data valid input                |
 +--------------+------+-------+---------------------------------------+
-| i_data       | in   | 24    | 视频数据输入                          |
+| i_data       | in   | 24    | Video data input                      |
 +--------------+------+-------+---------------------------------------+
-| o_hs         | out  | 1     | 带网格视频行同步输出                  |
+| o_hs         | out  | 1     | Video horizontal sync output with grid|
 +--------------+------+-------+---------------------------------------+
-| o_vs         | out  | 1     | 带网格视频场同步输出                  |
+| o_vs         | out  | 1     | Video vertical sync output with grid  |
 +--------------+------+-------+---------------------------------------+
-| o_de         | out  | 1     | 带网格视频数据有效输出                |
+| o_de         | out  | 1     | Video data valid output with grid     |
 +--------------+------+-------+---------------------------------------+
-| o_data       | out  | 24    | 带网格视频数据输出                    |
+| o_data       | out  | 24    | Video data output with grid           |
 +--------------+------+-------+---------------------------------------+
 
-wav_display模块端口
+wav_display module ports
 
-RAM的配置如下：
+The RAM configuration is as follows:
 
 .. image:: images/22_media/image10.png
       
@@ -227,47 +228,47 @@ RAM的配置如下：
       
 .. image:: images/22_media/image12.png
       
-timing_gen_xy模块为其它模块的子模块，完成视频图像的坐标生成，x坐标，从左到右增大，y坐标从上到下增大。
+The timing_gen_xy module is a sub-module of other modules, responsible for generating video image coordinates. The X coordinate increases from left to right, and the Y coordinate increases from top to bottom.
 
 +-------------+------+-------+----------------------------------------+
-| 信号名称    | 方向 | 宽度  | 说明                                   |
+| Signal Name | Dir  | Width | Description                            |
 |             |      | (bit) |                                        |
 +=============+======+=======+========================================+
-| clk         | in   | 1     | 系统时钟                               |
+| clk         | in   | 1     | System clock                           |
 +-------------+------+-------+----------------------------------------+
-| rst_n       | in   | 1     | 异步复位，低电平复位                   |
+| rst_n       | in   | 1     | Async reset, active low                |
 +-------------+------+-------+----------------------------------------+
-| i_hs        | in   | 1     | 视频行同步输入                         |
+| i_hs        | in   | 1     | Video horizontal sync input            |
 +-------------+------+-------+----------------------------------------+
-| i_vs        | in   | 1     | 视频场同步输入                         |
+| i_vs        | in   | 1     | Video vertical sync input              |
 +-------------+------+-------+----------------------------------------+
-| i_de        | in   | 1     | 视频数据有效输入                       |
+| i_de        | in   | 1     | Video data valid input                 |
 +-------------+------+-------+----------------------------------------+
-| i_data      | in   | 24    | 视频数据输入                           |
+| i_data      | in   | 24    | Video data input                       |
 +-------------+------+-------+----------------------------------------+
-| o_hs        | out  | 1     | 视频行同步输出                         |
+| o_hs        | out  | 1     | Video horizontal sync output           |
 +-------------+------+-------+----------------------------------------+
-| o_vs        | out  | 1     | 视频场同步输出                         |
+| o_vs        | out  | 1     | Video vertical sync output             |
 +-------------+------+-------+----------------------------------------+
-| o_de        | out  | 1     | 视频数据有效输出                       |
+| o_de        | out  | 1     | Video data valid output                |
 +-------------+------+-------+----------------------------------------+
-| o_data      | out  | 24    | 视频数据输出                           |
+| o_data      | out  | 24    | Video data output                      |
 +-------------+------+-------+----------------------------------------+
-| x           | out  | 12    | 坐标x输出                              |
+| x           | out  | 12    | X coordinate output                    |
 +-------------+------+-------+----------------------------------------+
-| y           | out  | 12    | 坐标y输出                              |
+| y           | out  | 12    | Y coordinate output                    |
 +-------------+------+-------+----------------------------------------+
 
-timing_gen_xy模块端口
+timing_gen_xy module ports
 
-实验现象
---------
+Experimental Results
+--------------------
 
-连接电路如下，调节信号发生器的频率和幅度，AN9238输入范围-5V-5V，为了便于观察波形数据，建议信号输入频率 200Khz 到 1Mhz。观察显示器输出，红色波形为 CH1 输入、蓝色为 CH2 输入、黄色网格最上面横线代表 5V，最下面横线代表-5V，中间横线代表 0V，每个竖线间隔是 10 个采样点。
+Connect the circuit as shown below. Adjust the frequency and amplitude of the signal generator. The AN9238 input range is -5V to 5V. For easier observation of waveform data, the recommended signal input frequency is 200KHz to 1MHz. Observe the display output: the red waveform is the CH1 input, blue is the CH2 input. On the yellow grid, the top horizontal line represents 5V, the bottom horizontal line represents -5V, the middle horizontal line represents 0V, and each vertical line interval represents 10 sampling points.
 
 .. image:: images/22_media/image13.png
       
-AX7020/AX7010硬件连接图（J11扩展口）
+AX7020/AX7010 Hardware Connection Diagram (J11 Expansion Port)
 
 .. image:: images/22_media/image14.png
       
