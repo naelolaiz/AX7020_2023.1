@@ -1,128 +1,128 @@
-PL端AXI GPIO的使用
-====================
+Using AXI GPIO on the PL Side
+================================
 
-**实验Vivado工程为“ps_axi_gpio”。**
+**The Vivado project for this experiment is "ps_axi_gpio".**
 
-可能有些人就会问，怎么又在讲GPIO，LED灯，觉得太繁琐，但是GPIO是ZYNQ的基本操作，本教程力求把各种方法分享给大家，PS端的MIO，EMIO，PL端的axi gpio，包括输入输出两个方向，以及PS与PL的基本操作，所以还是希望大家耐心学习。
+Some people may wonder why we are talking about GPIO and LED lights again, finding it too tedious. However, GPIO is a fundamental operation of ZYNQ. This tutorial aims to share various methods with everyone, including PS-side MIO, EMIO, PL-side AXI GPIO, covering both input and output directions, as well as basic PS and PL operations. So please be patient and keep learning.
 
-前面讲过如何用的是PS端的EMIO点亮PL端LED灯，但是并没有与PL端产生交互。本章介绍另外一种控制方法，在ZYNQ当中可以使用AXI GPIO，通过AXI总线控制PL端的LED灯。同时也介绍了PL端按键的使用。
+Previously, we discussed how to use PS-side EMIO to light up PL-side LED lights, but there was no interaction with the PL side. This chapter introduces another control method. In ZYNQ, you can use AXI GPIO to control PL-side LED lights through the AXI bus. It also introduces the use of PL-side buttons.
 
-使用zynq最大的疑问就是如何把PS和PL结合起来使用，在其他的SOC芯片中一般都会有GPIO，本实验使用一个AXI GPIO的IP核，让PS端通过AXI总线控制PL端的LED灯，实验虽然简单，不过可以让我们了解PL和PS是如何结合的。
+The biggest question when using ZYNQ is how to combine PS and PL together. In other SOC chips, there are usually GPIOs available. This experiment uses an AXI GPIO IP core to let the PS side control PL-side LED lights through the AXI bus. Although the experiment is simple, it helps us understand how PL and PS are combined.
 
-原理介绍
---------
+Principle Introduction
+----------------------
 
-一个AXI GPIO模块有两个GPIO，分别是GPIO和GPIO2，也就是channel1和channel2，为双向IO。
+An AXI GPIO module has two GPIOs, namely GPIO and GPIO2, which are channel1 and channel2 respectively, and they are bidirectional IOs.
 
 .. image:: images/05_media/image1.png
       
-AXI GPIO结构
+AXI GPIO Structure
 
-FPGA工程师工作内容
-------------------
+FPGA Engineer's Work
+--------------------
 
-以下为FPGA工程师负责内容。
+The following is the responsibility of the FPGA engineer.
 
-Vivado工程建立
---------------
+Creating the Vivado Project
+---------------------------
 
-1) 打开“ps_hello”另存为一个名为“ps_axi_gpio”Vivado工程，表示PS通过AXI总线控制gpio
+1) Open "ps_hello" and save it as a Vivado project named "ps_axi_gpio", indicating that PS controls GPIO through the AXI bus
 
 .. image:: images/05_media/image2.png
       
 .. image:: images/05_media/image3.png
       
-2) 双击xx.bd打开block design
+2) Double-click xx.bd to open the block design
 
 .. image:: images/05_media/image4.png
       
-添加AXI GPIO
-~~~~~~~~~~~~
+Adding AXI GPIO
+~~~~~~~~~~~~~~~
 
-3) 添加一个AXI GPIO的IP 核
+3) Add an AXI GPIO IP core
 
 .. image:: images/05_media/image5.png
       
-4) 双击刚才添加的“axi_gpio_0”配置参数
+4) Double-click the newly added "axi_gpio_0" to configure its parameters
 
 .. image:: images/05_media/image6.png
       
-5) 选择“All Outputs”，因为这里控制LED，只要输出就可以了，“GPIO Width”填4，控制4颗LED，点击OK。如果想使用channel2，需要把”Enable Dual Channel”打开，也就使能了GPIO2。
+5) Select "All Outputs", since we are controlling LEDs here and only need output. Set "GPIO Width" to 4 to control 4 LEDs, then click OK. If you want to use channel2, you need to enable "Enable Dual Channel", which enables GPIO2.
 
 .. image:: images/05_media/image7.png
       
-6) 点击“Run Connection Automation”，可以完成部分自动连线
+6) Click "Run Connection Automation" to complete partial automatic wiring
 
 .. image:: images/05_media/image8.png
       
-7) 选择要自动连接的端口，这里全选，点击OK
+7) Select the ports to be automatically connected. Select all here and click OK
 
 .. image:: images/05_media/image9.png
       
-8) 点击“Optimize Routing”，可以优化布局，同时可以看到多了两个模块，一个是Processor System Reset模块，为同步复位模块，提供同一时钟域的复位信号。AXI Interconnect模块为AXI总线互联模块，用于AXI模块的交叉互联。
+8) Click "Optimize Routing" to optimize the layout. You can also see that two additional modules have been added. One is the Processor System Reset module, which is a synchronous reset module that provides reset signals within the same clock domain. The AXI Interconnect module is an AXI bus interconnect module used for cross-interconnection of AXI modules.
 
 .. image:: images/05_media/image10.png
       
-在这个应用中，我们可以看到用到了ZYNQ的GP口，M_AXI_GP0，M代表的是master，此接口用于访问PL端数据，大部分应用中是为了配置PL端模块的寄存器。
+In this application, we can see that the ZYNQ GP port M_AXI_GP0 is used, where M stands for master. This interface is used to access PL-side data, and in most applications, it is used to configure registers of PL-side modules.
 
 .. image:: images/05_media/image11.png
       
-复位信号由ZYNQ的复位输出提供，最好是每个时钟域都加一个复位模块，可以根据模块下面的名称搜索添加。
+The reset signal is provided by the ZYNQ reset output. It is best to add a reset module for each clock domain. You can search and add them based on the module names shown below.
 
 .. image:: images/05_media/image12.png
       
-9) 修改GPIO端口的名称
+9) Modify the GPIO port name
 
 .. image:: images/05_media/image13.png
       
-10) 名称修改为leds
+10) Change the name to leds
 
 .. image:: images/05_media/image14.png
       
-11) 再添加一个AXI GPIO，连接PL端按键
+11) Add another AXI GPIO to connect to PL-side buttons
 
 .. image:: images/05_media/image15.png
       
-12) 配置GPIO参数，都为输入，宽度为1，使能中断
+12) Configure the GPIO parameters: all inputs, width of 1, and enable interrupts
 
 .. image:: images/05_media/image16.png
       
-13) 使用自动连接
+13) Use automatic connection
 
 .. image:: images/05_media/image17.png
       
-14) 再把端口名称改为keys
+14) Change the port name to keys
 
 .. image:: images/05_media/image18.png
       
-15) 由于是PL端过来的中断，在这里需要配置ZYNQ处理器的中断，勾选IRQ_F2P
+15) Since the interrupt comes from the PL side, we need to configure the ZYNQ processor interrupt here. Check IRQ_F2P
 
 .. image:: images/05_media/image19.png
       
-16) 连接ip2intc_irpt到IRQ_F2P
+16) Connect ip2intc_irpt to IRQ_F2P
 
 .. image:: images/05_media/image20.png
       
-17) 保存设计，点击xx.bd，右键Generate Output Products
+17) Save the design, click on xx.bd, right-click and select Generate Output Products
 
 .. image:: images/05_media/image21.png
       
-18) 在生成的Verilog文件中，可以看到有个“leds_tri_o”和”keys_tri_i”的端口，要为他们分配管脚，在绑定引脚时，以这个文件里的引脚名称为准。
+18) In the generated Verilog file, you can see there are ports named "leds_tri_o" and "keys_tri_i". You need to assign pins to them. When binding pins, use the pin names from this file as the reference.
 
 .. image:: images/05_media/image22.png
       
-XDC文件约束PL管脚
------------------
+XDC File for PL Pin Constraints
+-------------------------------
 
-1. 创建一个新的xdc约束文件
+1. Create a new XDC constraint file
 
 .. image:: images/05_media/image23.png
       
-2. 文件名称为led
+2. Name the file led
 
 .. image:: images/05_media/image24.png
       
-3. led.xdc添加一下内容，端口名称一定要和顶层文件端口一致
+3. Add the following content to led.xdc. The port names must match the top-level file ports
 
 ::
 
@@ -138,107 +138,106 @@ XDC文件约束PL管脚
  set_property IOSTANDARD LVCMOS33 [get_ports {keys_tri_i[0]}]
  set_property PACKAGE_PIN N15 [get_ports {keys_tri_i[0]}]
 
-1. 生成bit文件
+4. Generate the bit file
 
 .. image:: images/05_media/image25.png
       
-5. 导出硬件FileExportExport Hardware
+5. Export hardware: File > Export > Export Hardware
 
 .. image:: images/05_media/image26.png
          
-6. 因为要用到PL，所以选择“Include bitstream”，点击“OK”
+6. Since PL is used, select "Include bitstream" and click "OK"
 
-软件工程师工作内容
-------------------
+Software Engineer's Work
+------------------------
 
-以下为软件工程师负责内容。
+The following is the responsibility of the software engineer.
 
-Vitis程序编写
--------------
+Vitis Programming
+-----------------
 
-AXI GPIO点亮PL端LED灯
-~~~~~~~~~~~~~~~~~~~~~
+Using AXI GPIO to Light Up PL-Side LEDs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) 创建一个platform，创建过程参考“PS定时器中断实验”一章
+1) Create a platform. Refer to the "PS Timer Interrupt Experiment" chapter for the creation process
 
 .. image:: images/05_media/image27.png
       
-2) 面对一个不熟悉AXI GPIO，我们如何控制呢？我们可以尝试一下Vitis自带的例程
+2) When facing an unfamiliar AXI GPIO, how do we control it? We can try the built-in examples provided by Vitis
 
-3) 双击“platform.spr的BSP”,找到“axi_gpio_0”,这里可以点击“Documentation”来看相关文档，这里就不演示，点击“Import Examples”
+3) Double-click "BSP in platform.spr", find "axi_gpio_0". You can click "Documentation" to view the related documentation, which we won't demonstrate here. Click "Import Examples"
 
 .. image:: images/05_media/image28.png
       
-4) 在弹出的对话框中有多个例程，从名称中可以猜个大概，这里选第一个“xgpio_example”
+4) In the pop-up dialog, there are multiple examples. You can roughly guess their functions from the names. Select the first one "xgpio_example"
 
 .. image:: images/05_media/image29.png
       
-5) 可以看到例程比较简单，短短几行代码，完成了AXI GPIO的操作
+5) You can see that the example is quite simple. With just a few lines of code, it completes the AXI GPIO operation
 
 .. image:: images/05_media/image30.png
       
-里面用到很多GPIO相关的API函数，通过文档可以了解详细，也可以选中该函数，按“F3”查看具体定义。如果有了这些信息你还不能理解如何使用AXI GPIO，说明你需要补充C语言基础。
+Many GPIO-related API functions are used inside. You can learn the details through the documentation, or select a function and press "F3" to view its specific definition. If you still cannot understand how to use AXI GPIO with this information, it means you need to strengthen your C language fundamentals.
 
-其实这些函数都是在操作GPIO的寄存器，AXI GPIO的寄存器也不多，主要是两个channel的数据寄存器GPIO_DATA和GPIO2_DATA，两个channel的方向控制GPIO_TRI和GPIO2_TRI，以及全局中断使能寄存器GIER，IP的中断使能IP
-IER和中断状态寄存器ISR，具体的功能可以看AXI GPIO的文档pg144。
+In fact, these functions are all operating GPIO registers. There are not many AXI GPIO registers. The main ones are the data registers GPIO_DATA and GPIO2_DATA for the two channels, the direction control registers GPIO_TRI and GPIO2_TRI for the two channels, the global interrupt enable register GIER, the IP interrupt enable register IP IER, and the interrupt status register ISR. For specific functions, refer to the AXI GPIO document pg144.
 
 .. image:: images/05_media/image31.png
       
-比如进入到设置GPIO方向的函数中，就可以看到是在向GPIO的GPIO_TRI寄存器写数据，从而控制方向。
+For example, when entering the function that sets the GPIO direction, you can see that it writes data to the GPIO_TRI register of GPIO to control the direction.
 
 .. image:: images/05_media/image32.png
       
-其他的函数也可以按此法自行研究。
+Other functions can be studied in the same way.
 
-下载调试
-~~~~~~~~
+Download and Debug
+~~~~~~~~~~~~~~~~~~
 
-1) 首先编译APP工程，编译方法前面的例程已经介绍过了。虽然Vitis可以提供一些例程，但有一部分例程是需要自己修改的，这个简单的LED例程就不修改了，尝试运行一下，发现不能达到预期效果，甚至提示一些错误。下载后可以看到开发板PL
-   LED1快速闪烁。
+1) First, compile the APP project. The compilation method has been introduced in previous examples. Although Vitis can provide some examples, some of them need to be modified by yourself. We won't modify this simple LED example. Try running it and you may find it does not achieve the expected result, and may even show some errors. After downloading, you can see that PL
+   LED1 on the development board blinks rapidly.
 
 .. image:: images/05_media/image33.png
       
-2) 修改代码让4个LED灯都闪烁
+2) Modify the code to make all 4 LEDs blink
 
 .. image:: images/05_media/image34.png
       
-寄存器方式实现
-~~~~~~~~~~~~~~
+Register-Based Implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-如果觉得Xilinx提供的API函数比较繁琐，效率低，也可以采取操作寄存器的方式实现LED的控制。
+If you find the API functions provided by Xilinx too cumbersome and inefficient, you can also control LEDs by directly operating registers.
 
-比如下面我们新建了axi_led的工程，修改helloworld.c如下。
+For example, below we created a new axi_led project and modified helloworld.c as follows.
 
 .. image:: images/05_media/image35.png
       
 .. image:: images/05_media/image36.png
       
-其中定义的基地址GPIO_BASEADDR可以在xx.xsa中里找到
+The base address GPIO_BASEADDR defined here can be found in xx.xsa
 
 .. image:: images/05_media/image37.png
       
-由于我们只启用了channel1，因此定义了下面的寄存器地址
+Since we only enabled channel1, we defined the following register addresses
 
 .. image:: images/05_media/image38.png
       
-这样直接操作寄存器的方式效率会比调用Xilinx API函数高，而且更直观，对于理解程序如何运行有很大帮助。但是对于大工程来讲，这种方式使用起来就比较复杂，主要依据个人需求选择。
+Directly operating registers in this way is more efficient than calling Xilinx API functions, and it is more intuitive, which is very helpful for understanding how the program runs. However, for large projects, this approach becomes more complex to use. The choice mainly depends on personal needs.
 
-AXI GPIO之PL端按键中断
-~~~~~~~~~~~~~~~~~~~~~~
+AXI GPIO PL-Side Button Interrupt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-前面的定时器中断实验的中断属于PS内部的中断，本实验中断来自PL，PS最大可以接收16个来自PL的中断信号，都是上升沿或高电平触发。
+The interrupt in the previous timer interrupt experiment belongs to the PS internal interrupt. In this experiment, the interrupt comes from the PL side. The PS can receive up to 16 interrupt signals from the PL, all triggered by rising edge or high level.
 
 .. image:: images/05_media/image39.png
       
-1) 和前面的教程一样，在不熟悉Vitis程序编写的情况下，我们尽量使用Vitis自带例程来修改，选择“xgpio_intr_tapp_example”
+1) As with the previous tutorials, when unfamiliar with Vitis programming, we try to use built-in Vitis examples and modify them. Select "xgpio_intr_tapp_example"
 
 .. image:: images/05_media/image40.png
       
-2) 导入例程以后有未定义的错误，我们需要修改部分代码，可以回到vivado工程看到按键的axi gpio模块叫做axi_gpio_1，以及它的偏移地址
+2) After importing the example, there are undefined errors. We need to modify some code. You can go back to the Vivado project to see that the button's AXI GPIO module is called axi_gpio_1, along with its offset address
 
 .. image:: images/05_media/image41.png
       
-因此就可以在xparameters.h中找到它的device id
+Therefore, you can find its device id in xparameters.h
 
 .. image:: images/05_media/image42.png
       
@@ -246,44 +245,44 @@ AXI GPIO之PL端按键中断
       
 .. image:: images/05_media/image44.png
       
-3) 然后可以修改GPIO和中断号的宏定义如下
+3) Then modify the GPIO and interrupt number macro definitions as follows
 
 .. image:: images/05_media/image45.png
       
-4) 修改测试延时时间，让我们有足够的时间去按按键
+4) Modify the test delay time to give us enough time to press the button
 
 .. image:: images/05_media/image46.png
       
 .. _下载调试-1:
 
-下载调试
-~~~~~~~~
+Download and Debug
+~~~~~~~~~~~~~~~~~~
 
-1) 保存文件，编译工程，打开串口终端，下载程序。如果一直不按按键，串口显示“No button pressed.”，如果按下“PL KEY1”按键显示“Successfully ran Gpio Interrupt Tapp Example”。
+1) Save the file, compile the project, open the serial terminal, and download the program. If no button is pressed, the serial port displays "No button pressed." If you press the "PL KEY1" button, it displays "Successfully ran Gpio Interrupt Tapp Example".
 
 .. image:: images/05_media/image47.png
       
-实验总结
---------
+Experiment Summary
+------------------
 
-通过实验我们了解到PS可以通过AXI总线控制PL，但几乎没有体现出ZYNQ的优势，因为对于控制LED灯，无论是ARM还是FPGA，都可以轻松完成，但是如果把LED换成串口呢，控制100路串口通信，8路以太网等应用，我想还没有哪个SOC能完成这种功能，只有ZYNQ可以，这就是ZYNQ和普通SOC的不同之处。
+Through this experiment, we learned that PS can control PL through the AXI bus, but this barely demonstrates the advantages of ZYNQ. For controlling LED lights, whether it is ARM or FPGA, both can easily accomplish it. But what if we replace LEDs with serial ports? Controlling 100 serial communication channels, 8 Ethernet interfaces, and other applications - I believe no other SOC can accomplish such functions. Only ZYNQ can, and this is the difference between ZYNQ and ordinary SOCs.
 
-PL端可以给PS发送中断信号，这提高了PL和PS数据交互的效率，在需要大数量、低延时的应用中需要用到中断处理。
+The PL side can send interrupt signals to the PS, which improves the efficiency of data interaction between PL and PS. Interrupt handling is needed in applications that require large data volumes and low latency.
 
-到本章结束已经把ZYNQ的PS端MIO、EMIO，PL端GPIO如何使用讲完了，包括输入和输出以及中断处理，这些都是最基础的操作，大家还是要多多思考，理解清楚。
+By the end of this chapter, we have covered how to use PS-side MIO, EMIO, and PL-side GPIO of ZYNQ, including input, output, and interrupt handling. These are the most fundamental operations, and everyone should think more and understand them clearly.
 
-知识点分享
-----------
+Knowledge Sharing
+-----------------
 
-1) 在设计好后，可以看到Address Editor中，已经为AXI外设分配好了地址空间，其中偏移地址和空间大小是可以修改的。
+1) After the design is complete, you can see in the Address Editor that address spaces have been allocated for AXI peripherals. The offset address and space size can be modified.
 
 .. image:: images/05_media/image48.png
       
-但是修改偏移地址是有限制的，详情参考UG585文档System Address一章，AXI外设连接到了M_AXI_GP0口， 在4000_0000到7FFF_FFFF地址空间内修改。
+However, there are restrictions on modifying the offset address. For details, refer to the System Address chapter of the UG585 document. AXI peripherals are connected to the M_AXI_GP0 port and can be modified within the address space from 4000_0000 to 7FFF_FFFF.
 
 .. image:: images/05_media/image49.png
       
-2) 在使用一个模块时，需要配套的文档辅助开发，但是这些文档该如何去找呢，例如XILINX的IP，打开模块的配置，在左上角点击Documentation，再点击Product Guide，如果在安装Vivado的时候安装了DocNav，就会跳转过去打开文档。
+2) When using a module, supporting documentation is needed for development. But how do you find these documents? For example, for Xilinx IPs, open the module configuration, click Documentation in the upper left corner, then click Product Guide. If DocNav was installed when Vivado was installed, it will redirect and open the document.
 
 .. image:: images/05_media/image50.png
       
@@ -291,9 +290,9 @@ PL端可以给PS发送中断信号，这提高了PL和PS数据交互的效率，
       
 .. image:: images/05_media/image52.png
       
-此功能需要电脑联网，DocNav会从网站加载文档。可以点击下载按钮下载到本地。
+This feature requires an internet connection, as DocNav loads documents from the website. You can click the download button to save them locally.
 
-还有一种方法是在Xilinx官网根据模块的名称搜索资料下载（页面可能会有所变化）
+Another method is to search for and download materials by module name on the Xilinx official website (the page may change over time)
 
 .. image:: images/05_media/image53.png
       

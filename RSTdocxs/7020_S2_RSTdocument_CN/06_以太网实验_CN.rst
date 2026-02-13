@@ -1,50 +1,50 @@
-以太网实验（LWIP）
-====================
+Ethernet Experiment (LWIP)
+==========================
 
-**实验Vivado工程为“net_test”。**
+**The Vivado project for this experiment is "net_test".**
 
-开发板有1路千兆以太网，通过RGMII接口连接，本实验演示如何使用Vitis自带的LWIP模板进行千兆以太网TCP通信。
+The development board has 1 Gigabit Ethernet port connected via the RGMII interface. This experiment demonstrates how to use the built-in LWIP template in Vitis for Gigabit Ethernet TCP communication.
 
-LWIP虽然是轻量级协议栈，但如果从来没有使用过，使用起来会有一定的困难，建议先熟悉LWIP的相关知识。
+Although LWIP is a lightweight protocol stack, it can be somewhat difficult to use if you have never worked with it before. It is recommended to familiarize yourself with LWIP-related knowledge first.
 
-Vivado工程建立
---------------
+Vivado Project Setup
+--------------------
 
-基于“ps_hello”另存为一个“net_test”vivado工作。PS端Ethernet 0已经配置过。
+Save a copy of "ps_hello" as a "net_test" Vivado project. The PS-side Ethernet 0 has already been configured.
 
-Vitis程序开发
--------------
+Vitis Program Development
+-------------------------
 
-创建APP工程时基于LWIP模板
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Create APP Project Based on LWIP Template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: images/06_media/image1.png
       
-下载调试
---------
+Download and Debug
+------------------
 
-测试环境要求有一台支持dhcp的路由器，开发板连接路由器可以自动获取IP地址，实验主机和开发板在一个网络，可以相互通信。
+The test environment requires a router that supports DHCP. The development board can automatically obtain an IP address when connected to the router. The host computer and the development board must be on the same network so they can communicate with each other.
 
-以太网测试
-~~~~~~~~~~
+Ethernet Test
+~~~~~~~~~~~~~
 
-1) 连接串口打开串口调试终端，连接好PS端以太网网线到路由器，运行Vitis
+1) Connect the serial port and open a serial debug terminal, connect the PS-side Ethernet cable to the router, and run Vitis
 
 .. image:: images/06_media/image2.png
       
-2) 可以看到串口打印出一些信息，可以看到自动获取到地址为“192.168.1.63”，连接速度1000Mbps，tcp端口为7
+2) You can see some information printed on the serial port, showing that the automatically obtained address is "192.168.1.63", the connection speed is 1000Mbps, and the TCP port is 7
 
 .. image:: images/06_media/image3.png
       
-3) 使用telnet连接
+3) Connect using telnet
 
 .. image:: images/06_media/image4.png
       
-4) 当输入一个字符时，开发板返回相同字符
+4) When a character is entered, the development board returns the same character
 
 .. image:: images/06_media/image5.png
       
-实验总结
---------
+Experiment Summary
+------------------
 
-通过实验我们更加深刻了解到Vitis程序的开发，本实验只是简单的讲解如何创建一个LWIP应用，LWIP可以完成UDP、TCP等协议，在后续的教程中我们会提供基于以太网的具体应用，例如ADC采集数据通过以太网发送，摄像头数据通过以太网发送上位机显示。
+Through this experiment, we gained a deeper understanding of Vitis program development. This experiment only briefly explains how to create an LWIP application. LWIP can implement protocols such as UDP and TCP. In subsequent tutorials, we will provide specific Ethernet-based applications, such as sending ADC-acquired data over Ethernet, and sending camera data over Ethernet to be displayed on a host computer.

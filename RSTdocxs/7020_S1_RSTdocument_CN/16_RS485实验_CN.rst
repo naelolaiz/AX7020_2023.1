@@ -1,64 +1,64 @@
-RS485实验
-===========
+RS485 Experiment
+================
 
-**实验Vivado工程为“rs485_test”。**
+**The Vivado project for this experiment is "rs485_test".**
 
-本章以AN3485模块介绍RS485的数据传输。
+This chapter introduces RS485 data transmission using the AN3485 module.
 
-实验原理
---------
+Experiment Principle
+--------------------
 
-前面介绍过RS232和RS422的实验，而RS485与RS422类似，也是采用差分信号传输，但RS485是半双工传输，也就是说，同一时刻只能有一个方向的数据传输。而且接口也比RS422少，只有差分信号A和B，而与ARM或FPGA相连的信号为DE（方向选择）,DI（输入信号TXD），RO（输出信号RXD）。
+The RS232 and RS422 experiments were introduced earlier. RS485 is similar to RS422, also using differential signal transmission, but RS485 is half-duplex, meaning that data can only be transmitted in one direction at any given time. Additionally, the RS485 interface has fewer signals than RS422, with only differential signals A and B. The signals connected to the ARM or FPGA are DE (direction select), DI (input signal TXD), and RO (output signal RXD).
 
 .. image:: images/16_media/image1.png
       
-从MAX3485文档中，发送方向，如果DE为1时，也就是输出使能，DI值为1时，对于差分信号A和B值为1和0，否则为0和1。
+According to the MAX3485 datasheet, for the transmit direction, when DE is 1 (i.e., output enable) and DI is 1, the differential signals A and B are 1 and 0 respectively; otherwise they are 0 and 1.
 
 .. image:: images/16_media/image2.png
       
-从接收来看，如果DE为0，A和B之间差值大于等于+0.2V，则RO值为1，否则为0。
+For the receive direction, when DE is 0 and the voltage difference between A and B is greater than or equal to +0.2V, the RO value is 1; otherwise it is 0.
 
 .. image:: images/16_media/image3.png
       
-程序设计
---------
+Program Design
+--------------
 
-由于RS485是半双工传输，那么我们需要制定传输协议进行握手，设定第一个字节为8’h55，表示一帧数据的开始，接下来是传输的数据长度信息，由于FIFO大小限制（256），范围为1~255，接下来是数据。格式即为：起始8’h55+数据长度+数据。
+Since RS485 is half-duplex, we need to define a transmission protocol for handshaking. The first byte is set to 8'h55, indicating the start of a data frame, followed by the data length information. Due to the FIFO size limitation (256), the range is 1 to 255, followed by the data. The format is: start byte 8'h55 + data length + data.
 
-其中uart_tx和uart_rx跟RS232实验一样，在这里只修改uart_test即可。我们设计的功能为初始状态下将DE设为0，也就是输入，等待接收上位机发来的数据，并缓存到FIFO中，FIFO大小设置为256，然后切换DE为1，也就是输出，把接收到的数据从FIFO中读出并发送出去。注意缓存的数据是除去起始8’h55和数量信息的。
+The uart_tx and uart_rx modules are the same as in the RS232 experiment; only the uart_test module needs to be modified here. The designed functionality sets DE to 0 (i.e., input) in the initial state, waiting to receive data from the host computer and buffering it into a FIFO with a size of 256. Then DE is switched to 1 (i.e., output), and the received data is read from the FIFO and transmitted. Note that the buffered data excludes the start byte 8'h55 and the length information.
 
-在RCV_HEAD状态时，判断接收到的数据是否是”S”。
+In the RCV_HEAD state, it checks whether the received data is "S".
 
 .. image:: images/16_media/image4.png
       
-在RCV_COUNT状态时，如果数据长度小于0，则跳转到IDLE状态，如果大于0，则进入接收数据状态。
+In the RCV_COUNT state, if the data length is less than 0, it jumps to the IDLE state; if greater than 0, it enters the receive data state.
 
 .. image:: images/16_media/image5.png
       
-在RCV_DATA状态下，把数据写入FIFO，并且检查数据长度，切换RS485的方向为输出，并跳转状态。
+In the RCV_DATA state, data is written to the FIFO, the data length is checked, the RS485 direction is switched to output, and the state transitions.
 
 .. image:: images/16_media/image6.png
       
-在切换总线状态时，为了可靠工作，在WAIT状态下，延时1ms进行方向切换。
+When switching the bus state, for reliable operation, a 1ms delay is applied in the WAIT state before switching direction.
 
 .. image:: images/16_media/image7.png
       
-再然后是发送FIFO中的数据，SEND_WAIT状态是控制读使能信号fifo_rden，并且判断数据是否发送完，发送完后进入IDLE状态。
+Next is sending the data from the FIFO. The SEND_WAIT state controls the read enable signal fifo_rden and checks whether all data has been sent. After all data is sent, it returns to the IDLE state.
 
 .. image:: images/16_media/image8.png
       
-实验测试
---------
+Experiment Testing
+------------------
 
-我们仍然使用USB转串口设备，通过杜邦线将RS485_1的A和B分别与设备的A和B连接。
+We still use a USB-to-serial device. Use jumper wires to connect RS485_1's A and B to the device's A and B respectively.
 
 .. image:: images/16_media/image9.png
       
-|image1|\ ‘
+|image1|\ '
 
 .. image:: images/16_media/image11.png
       
-打开串口工具，设置好串口号波特率，选择16进制发送，发送数据以8’h55开头，点击发送，即可在接收窗口看到返回的数据。
+Open the serial port tool, set the serial port number and baud rate, select hexadecimal sending, send data starting with 8'h55, click send, and the returned data can be seen in the receive window.
 
 .. image:: images/16_media/image12.png
       

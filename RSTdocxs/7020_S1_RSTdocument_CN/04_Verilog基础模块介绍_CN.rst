@@ -1,33 +1,32 @@
-Verilog基础模块介绍
-=====================
+Introduction to Verilog Basic Modules
+=====================================
 
-简介
-----
+Introduction
+------------
 
-本文主要介绍verilog基础模块，夯实基础，对深入学习FPGA会有很大帮助。
+This article mainly introduces Verilog basic modules. Building a solid foundation will be very helpful for in-depth FPGA learning.
 
-数据类型
---------
+Data Types
+----------
 
-常量
-~~~~
+Constants
+~~~~~~~~~
 
-**整数**\ ：整数可以用二进制b或B，八进制o或O，十进制d或D，十六进制h或H表示，例如，
-8’b00001111表示8位位宽的二进制整数，4’ha表示4位位宽的十六进制整数。
+**Integers**\ : Integers can be represented in binary with b or B, octal with o or O, decimal with d or D, and hexadecimal with h or H. For example, 8'b00001111 represents an 8-bit binary integer, and 4'ha represents a 4-bit hexadecimal integer.
 
-**X和Z**\ ：X代表不定值，z代表高阻值，例如，5’b00x11，第三位不定值，3’b00z表示最低位为高阻值。
+**X and Z**\ : X represents an unknown value, and z represents a high-impedance value. For example, 5'b00x11 has an unknown value at the third bit, and 3'b00z indicates the least significant bit is high-impedance.
 
-**下划线**\ ：在位数过长时可以用来分割位数，提高程序可读性，如8’b0000_1111
+**Underscore**\ : When the number of bits is too long, underscores can be used to separate the bits for better readability, such as 8'b0000_1111.
 
-**参数parameter**:
-parameter可以用标识符定义常量，运用时只使用标识符即可，提高可读性及维护性，如定义parameter
-width = 8 ; 定义寄存器reg [width-1:0] a; 即定义了8位宽度的寄存器。
+**Parameter**:
+parameter can be used to define constants with identifiers. When used, only the identifier is needed, improving readability and maintainability. For example, defining parameter
+width = 8 ; and then defining register reg [width-1:0] a; defines a register with 8-bit width.
 
-参数的传递：在一个模块中如果有定义参数，在其他模块调用此模块时可以传递参数，并可以修改参数，如下所示，在module后用#（）表示。
+Parameter passing: If a module has defined parameters, other modules can pass and modify parameters when instantiating this module, as shown below, using #() after module.
 
-例如定义模块如下 
+For example, define the module as follows 
 
-调用模块
+Instantiating module
 
 .. code:: verilog
 
@@ -44,7 +43,7 @@ width = 8 ; 定义寄存器reg [width-1:0] a; 即定义了8位宽度的寄存器
  
  endmodule
 
-顶层模块
+Top-level module
 
 .. code:: verilog
 
@@ -67,31 +66,31 @@ width = 8 ; 定义寄存器reg [width-1:0] a; 即定义了8位宽度的寄存器
  ) ;  
  endmodule 
 
-Parameter可以用于模块间的参数传递，而localparam仅用于本模块内使用，不能用于参数传递。Localparam多用于状态机状态的定义。
+Parameter can be used for parameter passing between modules, while localparam is only used within the current module and cannot be used for parameter passing. Localparam is often used for defining state machine states.
 
-变量
-----
+Variables
+---------
 
-变量是指程序运行时可以改变其值的量，下面主要介绍几个常用了变量类型。
+Variables refer to quantities whose values can change during program execution. The following mainly introduces several commonly used variable types.
 
-Wire 型
-~~~~~~~
+Wire Type
+~~~~~~~~~
 
 Wire
-类型变量，也叫网络类型变量，用于结构实体之间的物理连接，如门与门之间，不能储存值，用连续赋值语句assign赋值，定义为wire
-[n-1:0] a ; 其中n代表位宽，如定义wire a ; assign a = b ;
-是将b的结点连接到连线a上。如下图所示，两个实体之间的连线即是wire类型变量。
+type variables, also called net type variables, are used for physical connections between structural entities, such as between gates. They cannot store values and are assigned using the continuous assignment statement assign. Defined as wire
+[n-1:0] a ; where n represents the bit width. For example, defining wire a ; assign a = b ;
+connects node b to wire a. As shown in the figure below, the connections between two entities are wire type variables.
 
 .. image:: images/04_media/image1.png
       
-Reg 型
-~~~~~~
+Reg Type
+~~~~~~~~
 
 Reg
-类型变量，也称为寄存器变量，可用来储存值，必须在always语句里使用。其定义为
+type variables, also called register variables, can be used to store values and must be used within always statements. They are defined as
 
-reg [n-1:0] a ; 表示n位位宽的寄存器，如reg [7:0] a;
-表示定义8位位宽的寄存器a。如下所示定义了寄存器q，生成的电路为时序逻辑，下图为其结构，为D触发器。
+reg [n-1:0] a ; representing an n-bit wide register. For example, reg [7:0] a;
+defines an 8-bit wide register a. As shown below, register q is defined, and the generated circuit is sequential logic. The figure below shows its structure, which is a D flip-flop.
 
 .. code:: verilog
 
@@ -108,8 +107,8 @@ reg [n-1:0] a ; 表示n位位宽的寄存器，如reg [7:0] a;
 
 |image1|
 
-也可以生成组合逻辑，如数据选择器，敏感信号没有时钟，定义了reg
-Mux，最终生成电路为组合逻辑。
+It can also generate combinational logic, such as a data selector (multiplexer). The sensitive signals do not include a clock. Reg
+Mux is defined, and the final generated circuit is combinational logic.
 
 .. code:: verilog
 
@@ -135,46 +134,46 @@ Mux，最终生成电路为组合逻辑。
 
 |image2|
 
-Memory型
-~~~~~~~~
+Memory Type
+~~~~~~~~~~~
 
-可以用memory类型来定义RAM,ROM等存储器，其结构为reg [n-1:0]
-存储器名[m-1:0]，意义为m个n位宽度的寄存器。例如，reg [7:0] ram
-[255:0]表示定义了256个8位寄存器，256也即是存储器的深度，8为数据宽度。
+The memory type can be used to define storage devices such as RAM and ROM. Its structure is reg [n-1:0]
+memory_name[m-1:0], meaning m registers with n-bit width. For example, reg [7:0] ram
+[255:0] defines 256 8-bit registers, where 256 is the storage depth and 8 is the data width.
 
-运算符
-------
+Operators
+---------
 
-运算符可分为以下几类：
+Operators can be classified into the following categories:
 
-1. 算术运算符（+，-，\*，/，%）
+1. Arithmetic operators (+, -, \*, /, %)
 
-2. 赋值运算符（=，<=）
+2. Assignment operators (=, <=)
 
-3. 关系运算符（>，<，>=，<=，==，！=）
+3. Relational operators (>, <, >=, <=, ==, !=)
 
-4. 逻辑运算符（&&，||，！）
+4. Logical operators (&&, ||, !)
 
-5. 条件运算符（？：）
+5. Conditional operator (?:)
 
-6. 位运算符（~，\|，^，&，^~）
+6. Bitwise operators (~, \|, ^, &, ^~)
 
-7. 移位运算符（<<，>>）
+7. Shift operators (<<, >>)
 
-8. 拼接运算符（{ }）
+8. Concatenation operator ({ })
 
-算术运算符
-~~~~~~~~~~
+Arithmetic Operators
+~~~~~~~~~~~~~~~~~~~~
 
-“+”(加法运算符)，”-“（减法运算符），”*”(乘法运算符)，”/”（除法运算符，如7/3
-=2），“%”（取模运算符，也即求余数，如7%3=1，余数为1）
+"+" (addition operator), "-" (subtraction operator), "*" (multiplication operator), "/" (division operator, e.g., 7/3
+=2), "%" (modulo operator, i.e., remainder, e.g., 7%3=1, remainder is 1)
 
-赋值运算符
-~~~~~~~~~~
+Assignment Operators
+~~~~~~~~~~~~~~~~~~~~
 
-“=”阻塞赋值，”<=”非阻塞赋值。阻塞赋值为执行完一条赋值语句，再执行下一条，可理解为顺序执行，而且赋值是立即执行;非阻塞赋值可理解为并行执行，不考虑顺序，在always块语句执行完成后，才进行赋值。如下面的阻塞赋值：
+"=" blocking assignment, "<=" non-blocking assignment. Blocking assignment executes one assignment statement before the next, which can be understood as sequential execution, and the assignment takes effect immediately. Non-blocking assignment can be understood as parallel execution, regardless of order, and the assignment only takes effect after the always block finishes execution. The following is an example of blocking assignment:
 
-代码如下： 
+The code is as follows: 
 
 .. code:: verilog
 
@@ -193,7 +192,7 @@ Memory型
   
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -219,84 +218,84 @@ Memory型
  top  t0(.din(din),.a(a),.b(b),.c(c),.clk(clk)) ; 
  endmodule 
 
-可以从仿真结果看到，在clk的上升沿，a的值等于din，并立即赋给b，b的值赋给c。
+As seen from the simulation results, at the rising edge of clk, the value of a equals din and is immediately assigned to b, and b's value is assigned to c.
 
 .. image:: images/04_media/image4.png
       
-如果改为非阻塞赋值，仿真结果如下，在clk上升沿，a的值没有立即赋值给b，b为a原来的值，同样，c为b原来的值
+If changed to non-blocking assignment, the simulation results are as follows: at the rising edge of clk, the value of a is not immediately assigned to b. b retains the previous value of a, and similarly, c retains the previous value of b.
 
 .. image:: images/04_media/image5.png
       
-可以从两者的RTL图看出明显不同：
+The differences between the two can be clearly seen from their RTL diagrams:
 
 |image3| |image4|
 
-阻塞赋值RTL图 非阻塞赋值RTL图
+Blocking assignment RTL diagram  Non-blocking assignment RTL diagram
 
-**一般情况下，在时序逻辑电路中使用非阻塞赋值，可避免仿真时出现竞争冒险现象;在组合逻辑中使用阻塞赋值，执行赋值语句后立即改变;在assign语句中必须用阻塞赋值。**
+**In general, non-blocking assignment should be used in sequential logic circuits to avoid race conditions during simulation; blocking assignment should be used in combinational logic, where the assignment takes effect immediately; blocking assignment must be used in assign statements.**
 
-关系运算符
-~~~~~~~~~~
+Relational Operators
+~~~~~~~~~~~~~~~~~~~~
 
-用于表示两个操作数之间的关系，如a>b，a<b，多用于判断条件，例如：
+Used to express the relationship between two operands, such as a>b, a<b. Mostly used for conditional judgment, for example:
 
 ::
 
- If (a>=b) q <=1’b1 ;
- else q <= 1’b0 ;
+ If (a>=b) q <=1'b1 ;
+ else q <= 1'b0 ;
 
-表示如果a的值大于等于b的值，则q的值为1，否则q的值为0
+This means if the value of a is greater than or equal to b, then q is 1; otherwise q is 0.
 
-逻辑运算符
-~~~~~~~~~~
+Logical Operators
+~~~~~~~~~~~~~~~~~
 
-“&&”（两个操作数逻辑与），”||”（两个操作数逻辑或），”!”（单个操作数逻辑非）例如：
+"&&" (logical AND of two operands), "||" (logical OR of two operands), "!" (logical NOT of a single operand). For example:
 
-If (a>b && c <d) 表示条件为a>b并且c<d; if
-(!a)表示条件为a的值不为1，也就是0。
+If (a>b && c <d) means the condition is a>b AND c<d; if
+(!a) means the condition is that the value of a is not 1, i.e., it is 0.
 
-条件运算符
-~~~~~~~~~~
+Conditional Operator
+~~~~~~~~~~~~~~~~~~~~
 
-“?:”为条件判断，类似于if else，例如assign a = (i>8)?1’b1:1’b0
-;判断i的值是否大于8，如果大于8则a的值为1，否则为0。
+"?:" is a conditional judgment, similar to if else. For example, assign a = (i>8)?1'b1:1'b0
+; checks whether the value of i is greater than 8. If greater than 8, a is 1; otherwise a is 0.
 
-位运算符
-~~~~~~~~
+Bitwise Operators
+~~~~~~~~~~~~~~~~~
 
-“~”按位取反，”|”按位或，”^”按位异或，”&”按位与，”^”按位同或，除了”~”只需要一个操作数外，其他几个都需要两个操作数，如a&b，a|b。具体应用在后面的组合逻辑一节中有讲解。
+"~" bitwise NOT, "|" bitwise OR, "^" bitwise XOR, "&" bitwise AND, "^~" bitwise XNOR. Except for "~" which requires only one operand, the others require two operands, such as a&b, a|b. Specific applications are explained in the combinational logic section later.
 
-移位运算符
-~~~~~~~~~~
+Shift Operators
+~~~~~~~~~~~~~~~
 
-“<<”左移位运算符，”>>”右移位运算符，如a<<1表示，向左移1位，a>>2，向右移两位。
+"<<" left shift operator, ">>" right shift operator. For example, a<<1 means shift left by 1 bit, a>>2 means shift right by 2 bits.
 
-拼接运算符
-~~~~~~~~~~
+Concatenation Operator
+~~~~~~~~~~~~~~~~~~~~~~
 
-“{ }”拼接运算符，将多个信号按位拼接，如{a[3:0],
-b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}表示将n个a[3:0]拼接，{n{1’b0}}表示n位的0拼接。如{8{1’b0}}表示为8’b0000_0000.
+"{ }" concatenation operator, used to concatenate multiple signals by bit. For example, {a[3:0],
+b[1:0]} concatenates the lower 4 bits of a and the lower 2 bits of b into 6-bit data. Additionally, {n{a[3:0]}} means concatenating n copies of a[3:0], and {n{1'b0}} means concatenating n zeros. For example, {8{1'b0}} represents 8'b0000_0000.
 
-优先级别
-~~~~~~~~
+Priority Levels
+~~~~~~~~~~~~~~~
 
-各种运算符的优先级别如下：
+The priority levels of various operators are as follows:
 
 .. image:: images/04_media/image8.png
       
-组合逻辑
---------
+Combinational Logic
+-------------------
 
-本节主要介绍组合逻辑，组合逻辑电路的特点是任意时刻的输出仅仅取决于输入信号，输入信号变化，输出立即变化，不依赖于时钟。
+This section mainly introduces combinational logic. The characteristic of combinational logic circuits is that the output at any moment depends solely on the input signals. When the input signals change, the output changes immediately, independent of the clock.
 
-与门
-~~~~
+AND Gate
+~~~~~~~~
 
-在verilog中以“&”表示按位与，如c=a&b，真值表如下，在a和b都等于1时结果才为1，RTL表示如右图
+In Verilog, "&" represents bitwise AND. For example, c=a&b. The truth table is shown below. The result is 1 only when both a and b are 1. The RTL representation is shown on the right.
 
 |image5| |image6|
 
-代码实现如下： 
+The code implementation is as follows: 
 
 .. code:: verilog
 
@@ -308,7 +307,7 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
  assign c = a & b ; 
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -335,22 +334,22 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
   
  endmodule 
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image11.png
       
-如果a和b的位宽大于1，例如定义input [3:0] a, input
-[3:0]b，那么a&b则指a与b的对应位相与。如a[0]&b[0],a[1]&b[1]。
+If the bit width of a and b is greater than 1, for example, defining input [3:0] a, input
+[3:0]b, then a&b means the corresponding bits of a and b are ANDed, such as a[0]&b[0], a[1]&b[1].
 
-或门
-~~~~
+OR Gate
+~~~~~~~
 
-在verilog中以“|”表示按位或，如c = a|b ,
-真值表如下，在a和b都为0时结果才为0。
+In Verilog, "|" represents bitwise OR. For example, c = a|b.
+The truth table is shown below. The result is 0 only when both a and b are 0.
 
 |image7| |image8|
 
-代码实现如下：
+The code implementation is as follows:
 
 .. code:: verilog
 
@@ -362,7 +361,7 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
  assign c = a | b ; 
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -389,20 +388,20 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
   
  endmodule 
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image14.png
       
-同理，位宽大于1，则是按位或。
+Similarly, if the bit width is greater than 1, the operation is performed bitwise OR.
 
-非门
-~~~~
+NOT Gate
+~~~~~~~~
 
-在verilog中以“~”表示按位取反，如b=~a，真值表如下，b等于a的相反数。
+In Verilog, "~" represents bitwise NOT. For example, b=~a. The truth table is shown below. b equals the inverse of a.
 
 |image9| |image10|
 
-代码实现如下： 
+The code implementation is as follows: 
 
 .. code:: verilog
 
@@ -413,7 +412,7 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
  assign b = ~a ; 
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -436,18 +435,18 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
   
  endmodule
 
-仿真结果如如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image17.png
       
-异或
-~~~~
+XOR Gate
+~~~~~~~~
 
-在verilog中以“^”表示异或，如c= a^b ，真值表如下，当a和b相同时，输出为0。
+In Verilog, "^" represents XOR. For example, c= a^b. The truth table is shown below. When a and b are the same, the output is 0.
 
 |image11| |image12|
 
-代码实现如下： 
+The code implementation is as follows: 
 
 .. code:: verilog
 
@@ -459,7 +458,7 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
  assign c = a ^ b ; 
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -486,19 +485,19 @@ b[1:0]}，将a的低4位，b的低2位拼接成6位数据。另外，{n{a[3:0]}}
   
  endmodule 
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image20.png
       
-比较器
-~~~~~~
+Comparator
+~~~~~~~~~~
 
-在verilog中以大于“>”，等于”==”，小于”<”，大于等于”>=”，小于等于”<=”，不等于”!=”表示，以大于举例，如c=
-a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如下：
+In Verilog, greater than ">", equal to "==", less than "<", greater than or equal to ">=", less than or equal to "<=", and not equal to "!=" are used. Taking greater than as an example, c=
+a > b ; means if a is greater than b, then c is 1; otherwise c is 0. The truth table is as follows:
 
 |image13|\ |image14|
 
-代码实现如下：
+The code implementation is as follows:
 
 .. code:: verilog
  
@@ -510,7 +509,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
  assign c = a > b ; 
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
  
@@ -537,18 +536,18 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image23.png
       
-半加器
-~~~~~~
+Half Adder
+~~~~~~~~~~
 
-半加器和全加器是算术运算电路中的基本单元，由于半加器不考虑从低位来的进位，所以称之为半加器，sum表示相加结果，count表示进位，真值表可表示如下：
+The half adder and full adder are basic units in arithmetic circuits. Since the half adder does not consider the carry from lower bits, it is called a half adder. sum represents the addition result, and count represents the carry. The truth table is as follows:
 
 \ |image15|\ |image16|
 
-可根据真值表写出代码如下： 
+The code can be written based on the truth table as follows: 
 
 .. code:: verilog
 
@@ -563,7 +562,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -592,18 +591,18 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image26.png
       
-全加器
-~~~~~~
+Full Adder
+~~~~~~~~~~
 
-而全加器需要加上低位来的进位信号cin，真值表如下：
+The full adder adds the carry input signal cin from the lower bits. The truth table is as follows:
 
 |image17|\ |image18|
 
-代码如下： 
+The code is as follows: 
 
 .. code:: verilog
 
@@ -618,7 +617,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -652,14 +651,14 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image29.png
       
-乘法器
-~~~~~~
+Multiplier
+~~~~~~~~~~
 
-乘法的表示也很简单，利用”*”即可，如a*b，举例代码如下：
+Multiplication representation is also very simple, using "*". For example, a*b. Example code is as follows:
 
 .. code:: verilog
 
@@ -671,7 +670,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
  assign c = a * b ; 
  endmodule
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -698,20 +697,20 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image30.png
       
-数据选择器
-~~~~~~~~~~
+Multiplexer
+~~~~~~~~~~~
 
-在verilog中经常会用到数据选择器，通过选择信号，选择不同的输入信号输出到输出端，如下图真值表，四选一数据选择器，sel[1:0]为选择信号，a,b,c,d为输入信号，Mux为输出信号。
+Multiplexers are frequently used in Verilog. Through selection signals, different input signals are routed to the output. As shown in the truth table below, a 4-to-1 multiplexer has sel[1:0] as the selection signal, a, b, c, d as input signals, and Mux as the output signal.
 
 .. image:: images/04_media/image31.png
       
 .. image:: images/04_media/image3.png
       
-代码如下： 
+The code is as follows: 
 
 .. code:: verilog
 
@@ -737,7 +736,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
     
  endmodule
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -784,20 +783,20 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
  endmodule 
 
 
-仿真结果如下
+The simulation results are as follows
 
 .. image:: images/04_media/image32.png
       
-3-8译码器
-~~~~~~~~~
+3-8 Decoder
+~~~~~~~~~~~
 
-3-8译码器是一个很常用的器件，其真值表如下所示，根据A2,A1,A0的值，得出不同的结果。
+The 3-8 decoder is a very commonly used device. Its truth table is shown below. Based on the values of A2, A1, A0, different results are obtained.
 
 .. image:: images/04_media/image33.png
       
 .. image:: images/04_media/image34.png
       
-代码如下： 
+The code is as follows: 
 
 .. code:: verilog
 
@@ -821,7 +820,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
     
  endmodule
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -847,19 +846,19 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image35.png
       
-三态门
-~~~~~~
+Tri-State Gate
+~~~~~~~~~~~~~~
 
-在FPGA使用中，经常会用到双向IO，需要用到三态门，如bio = en? din: 1’bz
-;其中en为使能信号，用于打开关闭三态门，下面的RTL图即是实现了双向IO，可参考代码。激励文件实现两个双向IO的对接。
+In FPGA applications, bidirectional IO is frequently used, which requires tri-state gates. For example, bio = en? din: 1'bz
+; where en is the enable signal used to open or close the tri-state gate. The RTL diagram below implements bidirectional IO. Refer to the code. The testbench file implements the connection of two bidirectional IOs.
 
 .. image:: images/04_media/image36.png
 
-代码如下：
+The code is as follows:
 
 .. code:: verilog
       
@@ -874,7 +873,7 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
     
  endmodule
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -919,27 +918,27 @@ a > b ;表示如果a大于b，那么c的值就为1，否则为0。真值表如�
   
  endmodule
 
-激励文件结构如下图
+The testbench file structure is shown in the figure below
 
 .. image:: images/04_media/image37.png
       
-仿真结果如下，en0为0，en1为1时，1通道打开，双向IO
-bio就等于1通道的din1，1通道向外发送数据，0通道接收数据，dout0等于bio;当en0为1，en1为0时，0通道打开，双向IO
-bio就等于0通道的din0，0通道向外发送数据，1通道接收数据，dout1等于bio
+In the simulation results below, when en0 is 0 and en1 is 1, channel 1 is open. The bidirectional IO
+bio equals din1 of channel 1. Channel 1 sends data outward, and channel 0 receives data, so dout0 equals bio. When en0 is 1 and en1 is 0, channel 0 is open. The bidirectional IO
+bio equals din0 of channel 0. Channel 0 sends data outward, and channel 1 receives data, so dout1 equals bio.
 
 .. image:: images/04_media/image38.png
       
-时序逻辑
---------
+Sequential Logic
+----------------
 
-组合逻辑电路在逻辑功能上特点是任意时刻的输出仅仅取决于当前时刻的输入，与电路原来的状态无关。而时序逻辑在逻辑功能上的特点是任意时刻的输出不仅仅取决于当前的输入信号，而且还取决于电路原来的状态。下面以典型的时序逻辑分析。
+The characteristic of combinational logic circuits is that the output at any moment depends solely on the current input, independent of the circuit's previous state. Sequential logic, on the other hand, is characterized by the fact that the output at any moment depends not only on the current input signals but also on the circuit's previous state. The following analyzes typical sequential logic circuits.
 
-D触发器
-~~~~~~~
+D Flip-Flop
+~~~~~~~~~~~~
 
-D触发器在时钟的上升沿或下降沿存储数据，输出与时钟跳变之前输入信号的状态相同。
+The D flip-flop stores data on the rising or falling edge of the clock. The output is the same as the state of the input signal before the clock transition.
 
-代码如下: 
+The code is as follows: 
 
 .. code:: verilog
 
@@ -954,7 +953,7 @@ D触发器在时钟的上升沿或下降沿存储数据，输出与时钟跳变�
     
  endmodule 
 
-激励文件如下:
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -980,22 +979,22 @@ D触发器在时钟的上升沿或下降沿存储数据，输出与时钟跳变�
   
  endmodule
 
-RTL图表示如下
+The RTL diagram is shown below
 
 .. image:: images/04_media/image2.png
       
-仿真结果如下，可以看到在t0时刻时，d的值为0，则q的值也为0;在t1时刻d发生了变化，值为1，那么q相应也发生了变化，值变为1。可以看到在t0-t1之间的一个时钟周期内，无论输入信号d的值如何变化，q的值是保持不变的，也就是有存储的功能，保存的值为在时钟的跳变沿时d的值。
+In the simulation results below, at time t0, d is 0, so q is also 0. At time t1, d changes to 1, so q also changes to 1. It can be seen that during one clock cycle between t0 and t1, regardless of how the input signal d changes, q remains unchanged. This means it has a storage function, and the stored value is the value of d at the clock transition edge.
 
 .. image:: images/04_media/image39.png
       
-两级D触发器
-~~~~~~~~~~~
+Two-Stage D Flip-Flop
+~~~~~~~~~~~~~~~~~~~~~
 
-软件是按照两级D触发器的模型进行时序分析的，具体可以分析在同一时刻两个D触发器输出的数据有何不同，其RTL图如下：
+Software performs timing analysis based on the two-stage D flip-flop model. You can analyze the difference in output data between two D flip-flops at the same moment. The RTL diagram is as follows:
 
 .. image:: images/04_media/image40.png
       
- 代码如下： 
+ The code is as follows: 
 
 .. code:: verilog
 
@@ -1017,7 +1016,7 @@ RTL图表示如下
     
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -1047,18 +1046,18 @@ RTL图表示如下
  endmodule
 
 
-仿真结果如下，可以看到t0时刻，d为0，q输出为0，t1时刻，q随着d的数据变化而变化，而此时钟跳变之前q的值仍为0，那么q1的值仍为0，t2时刻，时钟跳变前q的值为1，则q1的值相应为1，q1相对于q落后一个周期。
+In the simulation results below, at time t0, d is 0 and q outputs 0. At time t1, q changes with d's data change, but since q was still 0 before this clock transition, q1 remains 0. At time t2, q was 1 before the clock transition, so q1 becomes 1. q1 lags behind q by one clock cycle.
 
 .. image:: images/04_media/image41.png
       
-带异步复位的D触发器
-~~~~~~~~~~~~~~~~~~~
+D Flip-Flop with Asynchronous Reset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-异步复位是指独立于时钟，一旦异步复位信号有效，就触发复位操作。这个功能在写代码时会经常用到，用于给信号复位，初始化。其RTL图如下：
+Asynchronous reset operates independently of the clock. Once the asynchronous reset signal is active, the reset operation is triggered. This function is frequently used when writing code for signal reset and initialization. The RTL diagram is as follows:
 
 .. image:: images/04_media/image42.png
       
-代码如下，注意要把异步复位信号放在敏感列表里，如果是低电平复位，即为negedge，如果是高电平复位，则是posedge
+The code is as follows. Note that the asynchronous reset signal must be placed in the sensitivity list. If it is active-low reset, use negedge; if it is active-high reset, use posedge.
 
 .. code:: verilog
 
@@ -1078,7 +1077,7 @@ RTL图表示如下
   
  endmodule
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -1114,18 +1113,18 @@ RTL图表示如下
   
  endmodule
 
-仿真结果如下，可以看到在复位信号之前，虽然输入信号d数据有变化，但由于正处于复位状态，输入信号q始终为0，在复位之后q的值就正常了。
+In the simulation results below, before the reset signal is deasserted, although the input signal d has data changes, since the circuit is in reset state, the output q remains 0. After reset is deasserted, q operates normally.
 
 .. image:: images/04_media/image43.png
       
-带异步复位同步清零的D触发器
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+D Flip-Flop with Asynchronous Reset and Synchronous Clear
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-前面讲到异步复位独立于时钟操作，而同步清零则是同步于时钟信号下操作的，当然也不仅限于同步清零，也可以是其他的同步操作，其RTL图如下：
+As mentioned earlier, asynchronous reset operates independently of the clock, while synchronous clear operates synchronously with the clock signal. Of course, it is not limited to synchronous clear; it can also be other synchronous operations. The RTL diagram is as follows:
 
 .. image:: images/04_media/image44.png
       
-代码如下，不同于异步复位，同步操作不能把信号放到敏感列表里
+The code is as follows. Unlike asynchronous reset, synchronous operation signals should not be placed in the sensitivity list.
 
 .. code:: verilog
 
@@ -1148,7 +1147,7 @@ RTL图表示如下
   
  endmodule 
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -1189,18 +1188,18 @@ RTL图表示如下
  endmodule
 
 
-仿真结果如下，可以看到clr信号拉高后，q没有立即清零，而是在下个clk上升沿之后执行清零操作，也就是clr同步于clk。
+In the simulation results below, after the clr signal goes high, q does not clear to zero immediately. Instead, the clear operation is performed after the next rising edge of clk, meaning clr is synchronous with clk.
 
 .. image:: images/04_media/image45.png
       
-移位寄存器
-~~~~~~~~~~
+Shift Register
+~~~~~~~~~~~~~~
 
-移位寄存器是指在每个时钟脉冲来时，向左或向右移动一位，由于D触发器的特性，数据输出同步于时钟边沿，其结构如下，每个时钟来临，每个D触发器的输出q等于前一个D触发器输出的值，从而实现移位的功能。
+A shift register shifts one bit to the left or right at each clock pulse. Due to the characteristics of D flip-flops, data output is synchronized with the clock edge. Its structure is as follows: at each clock edge, each D flip-flop's output q equals the previous D flip-flop's output value, thus implementing the shift function.
 
 .. image:: images/04_media/image46.png
       
-代码实现：
+Code implementation:
 
 .. code:: verilog
 
@@ -1209,19 +1208,19 @@ RTL图表示如下
  input rst ; 
  input clk ; 
  output reg [7:0] q ;
- 
+
  always @(posedge clk or negedge rst) 
  begin 
    if (rst == 1'b0) 
      q <= 0 ; 
    else 
-     q <= {q[6:0], d} ;  //向左移位 
-   //q <= {d, q[7:1]} ;  //向右移位 
+     q <= {q[6:0], d} ;  //shift left 
+   //q <= {d, q[7:1]} ;  //shift right 
  end 
   
  endmodule
 
-激励文件：
+Testbench file:
 
 .. code:: verilog
 
@@ -1257,17 +1256,17 @@ RTL图表示如下
   
  endmodule
 
-仿真结果如下，可以看到复位之后，每个clk上升沿左移一位
+In the simulation results below, after reset is deasserted, data shifts left by one bit at each rising edge of clk.
 
 .. image:: images/04_media/image47.png
       
-单口RAM
-~~~~~~~
+Single-Port RAM
+~~~~~~~~~~~~~~~
 
-单口RAM的写地址与读地址共用一个地址，代码如下，其中reg [7:0] ram
-[63:0]意思是定义了64个8位宽度的数据。其中定义了addr_reg，可以保持住读地址，延迟一周期之后将数据送出。
+In single-port RAM, the write address and read address share the same address. The code is as follows, where reg [7:0] ram
+[63:0] defines 64 registers with 8-bit width. addr_reg is defined to hold the read address, and the data is output after a one-cycle delay.
 
-代码实现：
+Code implementation:
 
 .. code:: verilog
 
@@ -1287,14 +1286,14 @@ RTL图表示如下
  begin 
    if (wr)               //write 
      ram[addr] <= data; 
- 	     
+     
    addr_reg <= addr; 
  end 
   
  assign q = ram[addr_reg];  //read data 
  endmodule 
 
-激励文件：
+Testbench file:
 
 .. code:: verilog
 
@@ -1329,16 +1328,16 @@ RTL图表示如下
          .q(q)) ; 
  endmodule
 
-仿真结果如下，可以看到q的输出与写入的数据一致
+In the simulation results below, it can be seen that the output q is consistent with the written data.
 
 .. image:: images/04_media/image48.png
       
-伪双口RAM
-~~~~~~~~~
+Simple Dual-Port RAM
+~~~~~~~~~~~~~~~~~~~~
 
-伪双口RAM的读写地址是独立的，可以随机选择写或读地址，同时进行读写操作。代码如下，在激励文件中定义了en信号，在其有效时发送读地址。
+In simple dual-port RAM, the read and write addresses are independent, allowing random selection of write or read addresses and simultaneous read and write operations. The code is as follows. In the testbench file, an en signal is defined, and when it is active, the read address is sent.
 
-代码实现
+Code implementation
 
 .. code:: verilog
 
@@ -1366,7 +1365,7 @@ RTL图表示如下
   
  endmodule 
 
-激励文件
+Testbench file
 
 .. code:: verilog
 
@@ -1414,16 +1413,16 @@ RTL图表示如下
          .q(q)) ; 
  endmodule 
 
-仿真结果如下，可以看到在rd有效时，对读地址进行操作，读出数据
+In the simulation results below, when rd is active, the read address is operated and data is read out.
 
 .. image:: images/04_media/image49.png
       
-真双口RAM
-~~~~~~~~~
+True Dual-Port RAM
+~~~~~~~~~~~~~~~~~~
 
-真双口RAM有两套控制线，数据线，允许两个系统对其进行读写操作，代码如下：
+True dual-port RAM has two sets of control lines and data lines, allowing two systems to perform read and write operations. The code is as follows:
 
-代码实现
+Code implementation
 
 .. code:: verilog
 
@@ -1447,12 +1446,12 @@ RTL图表示如下
       ram[addr_a] <= data_a; 
       q_a <= data_a ; 
      end 
- 	  if (rd_a)                    
+  if (rd_a)                    
  //read 
       q_a <= ram[addr_a]; 
  end 
   
- 
+
  //Port B 
  always @ (posedge clk) 
  begin 
@@ -1468,7 +1467,7 @@ RTL图表示如下
   
  endmodule 
 
-激励文件
+Testbench file
 
 .. code:: verilog
 
@@ -1531,17 +1530,17 @@ RTL图表示如下
     .q_a(q_a), .q_b(q_b)) ; 
  endmodule 
 
-仿真结果如下
+The simulation results are as follows
 
 .. image:: images/04_media/image50.png
       
-单口ROM
-~~~~~~~
+Single-Port ROM
+~~~~~~~~~~~~~~~
 
-ROM是用来存储数据的，可以按照下列代码形式初始化ROM，但这种方法处理大容量的ROM就比较麻烦，建议用FPGA自带的ROM
-IP核实现，并添加初始化文件。
+ROM is used for data storage. The ROM can be initialized using the code format below, but this method is cumbersome for large-capacity ROMs. It is recommended to use the FPGA's built-in ROM
+IP core and add an initialization file.
 
-代码实现 
+Code implementation 
 
 .. code:: verilog
 
@@ -1577,7 +1576,7 @@ IP核实现，并添加初始化文件。
  
  endmodule
 
-激励文件
+Testbench file
 
 .. code:: verilog
 
@@ -1605,20 +1604,20 @@ IP核实现，并添加初始化文件。
          .q(q)) ; 
  endmodule 
 
-仿真结果如下
+The simulation results are as follows
 
 .. image:: images/04_media/image51.png
       
-有限状态机
-~~~~~~~~~~
+Finite State Machine
+~~~~~~~~~~~~~~~~~~~~
 
-在verilog里经常会用到有限状态机，处理相对复杂的逻辑，设定好不同的状态，根据触发条件跳转到对应的状态，在不同的状态下做相应的处理。有限状态机主要用到always及case语句。下面以一个四状态的有限状态机举例说明。
+Finite state machines are frequently used in Verilog for handling relatively complex logic. Different states are defined, and transitions to corresponding states occur based on trigger conditions, with appropriate processing performed in each state. Finite state machines mainly use always and case statements. The following uses a four-state finite state machine as an example.
 
 .. image:: images/04_media/image52.png
       
-在程序中设计了8位的移位寄存器，在Idle状态下，判断shift_start信号是否为高，如果为高，进入Start状态，在Start状态延迟100个周期，进入Run状态，进行移位处理，如果shift_stop信号有效了，进入Stop状态，在Stop状态，清零q的值，再跳转到Idle状态。
+In the program, an 8-bit shift register is designed. In the Idle state, it checks whether the shift_start signal is high. If high, it enters the Start state. In the Start state, after a delay of 100 cycles, it enters the Run state for shift processing. If the shift_stop signal becomes active, it enters the Stop state. In the Stop state, the value of q is cleared to zero, and then it transitions back to the Idle state.
 
-Mealy有限状态机，输出不仅与当前状态有关，也与输入信号有关，在RTL中会与输入信号有连接。
+Mealy finite state machine: the output depends not only on the current state but also on the input signals. In the RTL diagram, it has connections with input signals.
 
 .. code:: verilog
 
@@ -1678,7 +1677,7 @@ Mealy有限状态机，输出不仅与当前状态有关，也与输入信号有
  end           
  endmodule 
 
-Moore有限状态机，输出只与当前状态有关，与输入信号无关，输入信号只影响状态的改变，不影响输出，比如对delay_cnt和q的处理，只与state状态有关。
+Moore finite state machine: the output depends only on the current state, not on input signals. Input signals only affect state transitions, not outputs. For example, the processing of delay_cnt and q depends only on the state.
 
 .. code:: verilog
 
@@ -1758,17 +1757,17 @@ Moore有限状态机，输出只与当前状态有关，与输入信号无关，
   
  endmodule
 
-在上面两个程序中用到了两种方式的写法，第一种的Mealy状态机，采用了一段式的写法，只用了一个always语句，所有的状态转移，判断状态转移条件，数据输出都在一个always语句里，缺点是如果状态太多，会使整段程序显的冗长。第二个Moore状态机，采用了三段式的写法，状态转移用了一个always语句，判断状态转移条件是组合逻辑，采用了一个always语句，数据输出也是单独的 always语句，这样写起来比较直观清晰，状态很多时也不会显得繁琐。
+In the two programs above, two different coding styles are used. The first Mealy state machine uses a one-segment style with only one always statement, where all state transitions, state transition condition judgments, and data outputs are in a single always statement. The disadvantage is that if there are too many states, the entire program becomes lengthy. The second Moore state machine uses a three-segment style: state transition uses one always statement, state transition condition judgment uses combinational logic in one always statement, and data output uses a separate always statement. This approach is more intuitive and clear, and does not become cumbersome even with many states.
 
 .. image:: images/04_media/image53.png
       
-Mealy有限状态机RTL图
+Mealy Finite State Machine RTL Diagram
 
 .. image:: images/04_media/image54.png
       
-Moore有限状态机RTL图
+Moore Finite State Machine RTL Diagram
 
-激励文件如下：
+The testbench file is as follows:
 
 .. code:: verilog
 
@@ -1817,14 +1816,14 @@ Moore有限状态机RTL图
  ); 
  endmodule
 
-仿真结果如下：
+The simulation results are as follows:
 
 .. image:: images/04_media/image55.png
       
-总结
-----
+Summary
+-------
 
-本文档介绍了组合逻辑以及时序逻辑中常用的模块，其中有限状态机较为复杂，但经常用到，希望大家能够深入理解，在代码中多运用，多思考，有利于快速提升水平。
+This document introduced commonly used modules in combinational logic and sequential logic. The finite state machine is relatively complex but frequently used. We hope that everyone can deeply understand it, apply it in code, and think more about it, which will help rapidly improve your skills.
 
 .. |image1| image:: images/04_media/image2.png
 .. |image2| image:: images/04_media/image3.png
@@ -1844,4 +1843,3 @@ Moore有限状态机RTL图
 .. |image16| image:: images/04_media/image25.png
 .. |image17| image:: images/04_media/image27.png
 .. |image18| image:: images/04_media/image28.png
-      

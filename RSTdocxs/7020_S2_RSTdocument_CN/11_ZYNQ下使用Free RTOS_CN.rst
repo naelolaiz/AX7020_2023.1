@@ -1,51 +1,47 @@
-ZYNQ下使用Free RTOS
-=====================
+Using FreeRTOS on ZYNQ
+======================
 
-**实验Vivado工程为“freeos_test”。**
+**The Vivado project for this experiment is "freeos_test".**
 
-学习ZYNQ，很大一部分都是FPGA开发人员，不太擅长使用Linux，所以我建议大家还
+Many ZYNQ learners are FPGA developers who are not very familiar with Linux, so it is recommended to start with a real-time operating system or bare-metal development, which also offers greater flexibility. This chapter explains how to set up the FreeRTOS real-time operating system runtime environment, without delving deeply into the specific usage of FreeRTOS. This experiment uses the FreeRTOS Hello World as an example and implements two LEDs blinking continuously at different intervals.
 
-是先使用实时操作系统或者裸机运行，这样也有更大的灵活性。本章给大家讲解如何搭建
+This experiment is based on the "Dual-Core AMP Usage" project, and no modifications to the hardware environment are required.
 
-Free RTOS实时操作系统运行环境，这里不深入探讨Free RTOS的具体使用。本实验以FreeRTOS Hello World做举例，并实现两个LED灯以不同间隔持续闪烁。
+Vitis Program Development
+-------------------------
 
-本实验基于“双核AMP的使用”工程，硬件环境不需要修改。
-
-Vitis程序开发
--------------
-
-1. 新建工程，OS Platform选择freertos10_xilinx
+1. Create a new project and select freertos10_xilinx as the OS Platform
 
 .. image:: images/11_media/image1.png
       
-2. 本实验选择FreeRTOS Hello World做举例
+2. This experiment selects FreeRTOS Hello World as an example
 
 .. image:: images/11_media/image2.png
       
-Hello World例子中建立了两个任务，发送任务和接收任务，接收任务的优先级高于发送任务。并且创建队列，由发送任务向队列发送数据，接收任务从队列中读取数据并打印。例子中设设置了timer，但在本实验中删除了timer，让发送和接收任务一直工作。
+The Hello World example creates two tasks: a send task and a receive task, where the receive task has a higher priority than the send task. A queue is also created, through which the send task sends data to the queue and the receive task reads data from the queue and prints it. The example originally sets up a timer, but in this experiment the timer is removed to allow the send and receive tasks to run continuously.
 
 .. image:: images/11_media/image3.png
       
-3. 在此基础上增加PS和PL端LED闪烁任务，PS端闪烁间隔为100ms，PL端闪烁间隔为1S
+3. On this basis, add LED blinking tasks for both the PS and PL sides, with the PS side blinking interval set to 100ms and the PL side blinking interval set to 1S
 
 .. image:: images/11_media/image4.png
       
-板上验证
---------
+Board Verification
+------------------
 
-1. 下载界面设置，下载程序
+1. Configure the download interface and download the program
 
 .. image:: images/11_media/image5.png
       
-2. 打开putty，正在持续打印数据
+2. Open PuTTY, data is being printed continuously
 
 .. image:: images/11_media/image6.png
       
-3. 同时也能看到开发板上PS端和PL端LED闪烁，直观地体现了多任务并行处理。
+3. At the same time, you can see the PS side and PL side LEDs blinking on the development board, which intuitively demonstrates multi-task parallel processing.
 
-（AX7015开发板为PS_LED和PL_LED4；AX7021开发板为LED1和LED2；AX7020/AX7010开发板为PS LED1和PL LED1；AX7Z035/AX7Z100开发板为LED1和LED2；）
+(For the AX7015 board: PS_LED and PL_LED4; for the AX7021 board: LED1 and LED2; for the AX7020/AX7010 board: PS LED1 and PL LED1; for the AX7Z035/AX7Z100 board: LED1 and LED2)
 
-本章小结
---------
+Chapter Summary
+---------------
 
-相对于复杂的Linux，FreeRTOS 等实时操作系统给我们带来更灵活更方便的开发，可以更直接的和底层FPGA进行交互，但是FreeRTOS本身也有一点难度，要想熟练应用，还是要结合具体的项目多加练习。
+Compared to the complexity of Linux, real-time operating systems such as FreeRTOS offer more flexible and convenient development, allowing more direct interaction with the underlying FPGA. However, FreeRTOS itself has a certain learning curve, and to become proficient, it is necessary to practice more with real-world projects.

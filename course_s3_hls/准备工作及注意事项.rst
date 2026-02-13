@@ -2,13 +2,13 @@
 .. image:: images/images_0/88.png  
 
 ========================================
-准备工作及注意事项
+Prerequisites and Notes
 ========================================
-本教程基于学习者已经熟练使用Vivado和xSDK的情况下编写，不详细讲解Vivado工程建立，xSDK裸机软件编写，中断处理等。HLS要求学习者熟练使用C++，具备一定硬件思维，对硬件流水线、组合逻辑、时序逻辑、FIFO、RAM、AXI总线协议有深刻理解才能学习，免得出现低级错误。
+This tutorial is written assuming the learner is already proficient in using Vivado and xSDK, and does not explain in detail how to create Vivado projects, write xSDK bare-metal software, or handle interrupts. HLS requires learners to be proficient in C++, have hardware thinking skills, and have a deep understanding of hardware pipelines, combinational logic, sequential logic, FIFO, RAM, and AXI bus protocols before studying, to avoid making basic errors.
 
-软件环境
+Software Environment
 ========================================
-本教程基于软件版本 SDx2023.1，这里主要用到的快捷方式图标有：
+This tutorial is based on software version SDx2023.1. The main shortcut icons used here are:
 
 .. image:: images/images0/image1.png   
    :align: left
@@ -16,12 +16,12 @@
 .. image:: images/images0/image2.png   
    :align: right   
 
-硬件环境
+Hardware Environment
 ========================================
-ZYNQ（ALINX芯驿电子科技）开发板一块，双目镜头模块一个。当前支持的型号列表如下：
+One ZYNQ (ALINX) development board and one binocular camera module. The currently supported models are listed below:
 
 .. csv-table:: 
-  :header: "开发板型号", "双目模块", "ZYNQ芯片型号","ddr参数兼容型号"
+  :header: "Development Board Model", "Binocular Module", "ZYNQ Chip Model", "DDR Parameter Compatible Model"
   :widths: 20, 20, 20, 20
   
 
@@ -39,35 +39,35 @@ AX7020
 .. image:: images/images0/image4.png   
    :align: center  
 
-AX7020正确连接摄像头方式，例程中都是插在J10    
+AX7020 proper camera connection method, all examples use the J10 connector    
 
 .. image:: images/images0/image5.png   
    :align: center     
 
 AX7015   
 
-**另外需要自己准备好HDMI显示器一台（支持1080P60）。**
+**Additionally, you need to prepare an HDMI display (supporting 1080P60).**
 
-实验工程及目录说明
+Experimental Projects and Directory Description
 ========================================
 
 .. csv-table:: 
-  :header: "工程名称", "目录路径", "说明"
+  :header: "Project Name", "Directory Path", "Description"
   :widths: 20, 20, 20
 
 
-  "HLS工程","hls","个算法导出的ip由vivado引用"
-  "vivado工程","vivado"," "
-  "vitis工程","vitis","软件程序"
-  "常用ip","vivado/ip/normal","verilog封装ip"
-  
-实验快速复现
+  "HLS Project","hls","IPs exported from algorithms are referenced by Vivado"
+  "Vivado Project","vivado"," "
+  "Vitis Project","vitis","Software programs"
+  "Common IPs","vivado/ip/normal","Verilog-wrapped IPs"
+   
+Quick Experiment Reproduction
 ========================================
-1) 连接好jtag接口
-2) 设置启动模式为QSPI启动
-3) 将对应实验SDK工程中文件BOOT.bin拷贝到flash_load_comm目录下
-4) 开发板上电
+1) Connect the JTAG interface
+2) Set the boot mode to QSPI boot
+3) Copy the BOOT.bin file from the corresponding experiment SDK project to the flash_load_comm directory
+4) Power on the development board
 
 .. image:: images/images_0/888.png  
 
-*ZYNQ MPSoC开发平台 FPGA教程*    - `Alinx官方网站 <http://www.alinx.com>`_
+*ZYNQ MPSoC Development Platform FPGA Tutorial*    - `ALINX Official Website <http://www.alinx.com>`_

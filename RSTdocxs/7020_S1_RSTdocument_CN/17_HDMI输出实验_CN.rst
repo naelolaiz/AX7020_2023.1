@@ -1,174 +1,174 @@
-HDMI输出实验
-==============
+HDMI Output Experiment
+======================
 
-**实验Vivado工程为“hdmi_output_test”。**
+**The Vivado project for this experiment is "hdmi_output_test".**
 
-前面我们介绍了led闪灯实验，只是为了了解Vivado的基本开发流程，本章这个实验相对LED闪灯实验复杂点，做一个HDMI输出的彩条，这也是我们后面学习显示、视频处理的基础。实验还不涉及到PS系统，从实验设计可以看出如果要非常好的使用ZYNQ芯片，需要良好的FPGA基础知识。
+In the previous section, we introduced the LED blinking experiment, which was only meant to familiarize you with the basic Vivado development workflow. This chapter's experiment is more complex than the LED blinking experiment — we will generate color bars for HDMI output, which also serves as a foundation for later learning about display and video processing. This experiment does not involve the PS system. As the experiment design shows, a solid foundation in FPGA knowledge is required to make the best use of the ZYNQ chip.
 
-硬件介绍
---------
+Hardware Introduction
+---------------------
 
-开发板没有使用HDMI编码芯片，而是将FPGA的3.3V差分IO直接连接到HDMI连接器，
-FPGA完成24位RGB编码输出TMDS差分信号。
+The development board does not use an HDMI encoder chip. Instead, the FPGA's 3.3V differential IOs are directly connected to the HDMI connector,
+and the FPGA encodes 24-bit RGB data and outputs TMDS differential signals.
 
 .. image:: images/17_media/image1.png
       
-TMDS原理
-~~~~~~~~
+TMDS Principles
+~~~~~~~~~~~~~~~
 
-HDMI采用和DVI相同的传输原理——TMDS（Transition Minimized Differential signal），最小化传输差分信号。
+HDMI uses the same transmission principle as DVI — TMDS (Transition Minimized Differential Signal), which minimizes transmission transitions using differential signaling.
 
-TMDS传输系统分为分为两个部分：发送端和接收端。TMDS发送端收到HDMI接口传来的表示RGB信号的24位并行数据（TMDS对每个像素的RGB三原色分别按8bit编码，即R信号有8位，G信号有8位，B信号有8位），然后对这些数据进行编码和并/串转换，再将表示3个RGB信号的数据分别分配到独立的传输通道发送出去。接收端接收来自发送端的串行信号，对其进行解码和串/并转换，然后发送到显示器的控制端。与此同时也接收时钟信号，以实现同步。
+The TMDS transmission system consists of two parts: the transmitter and the receiver. The TMDS transmitter receives 24-bit parallel data representing RGB signals from the HDMI interface (TMDS encodes the RGB primary colors of each pixel at 8 bits each, i.e., 8 bits for R, 8 bits for G, and 8 bits for B), then encodes and performs parallel-to-serial conversion on this data, and distributes the data representing the 3 RGB signals to independent transmission channels for output. The receiver accepts serial signals from the transmitter, decodes them and performs serial-to-parallel conversion, then sends the data to the display controller. At the same time, it also receives the clock signal for synchronization.
 
-**TMDS的原理**
+**TMDS Principles**
 
-每一个TMDS链路都包括3个传输RGB信号的数据通道和1个传输时钟信号的通道。每一个数据通道都通过编码算法，将8位的视、音频数据转换成最小化传输、直流平衡的10位数据。这使得数据的传输和恢复更加可靠。最小化传输差分信号是通过异或及异或非等逻辑算法将原始8位信号数据转换成10位，前8为数据由原始信号经运算后获得，第9位指示运算的方式，第10位用来对应直流平衡。
+Each TMDS link includes 3 data channels for transmitting RGB signals and 1 channel for transmitting the clock signal. Each data channel uses an encoding algorithm to convert 8-bit video and audio data into transition-minimized, DC-balanced 10-bit data. This makes data transmission and recovery more reliable. The transition-minimized differential signal uses XOR and XNOR logic algorithms to convert the original 8-bit signal data into 10 bits. The first 8 bits of data are derived from the original signal through computation, the 9th bit indicates the type of operation performed, and the 10th bit is used for DC balancing.
 
-一般来说，HDMI传输的编码格式中要包含视频数据、控制数据和数据包（数据包中包含音频数据和附加信息数据，例如纠错码等）。TMDS每个通道在传输时要包含一个2bit的控制数据、8bit的视频数据或者4bit的数据包即可。在HDMI信息传输过程中，可以分为三个阶段：视频数据传输周期、控制数据传输周期和数据岛传输周期，分别对应上述的三种数据类型。
+Generally, the encoding format for HDMI transmission includes video data, control data, and data packets (which contain audio data and auxiliary information such as error correction codes). Each TMDS channel transmits 2-bit control data, 8-bit video data, or 4-bit data packets. During HDMI data transmission, the process can be divided into three phases: the video data transmission period, the control data transmission period, and the data island transmission period, corresponding to the three data types mentioned above.
 
-下面介绍TMDS中采用的技术：
+The following describes the technologies used in TMDS:
 
-1.传输最小化
+1. Transition Minimization
 
- 8位数据经过编码和直流平衡得到10位最小化数据，这仿佛增加了冗余位，对传输链路的带宽要求更高，但事实上，通过这种算法得到的10位数据在更长的同轴电缆中传输的可靠性增强了。下图是一个例子，说明对一个8位的并行RED数据编码、并/串转换。
+ After encoding and DC balancing, 8-bit data becomes 10-bit minimized data. This appears to add redundant bits and demand higher bandwidth from the transmission link. However, in practice, the 10-bit data obtained through this algorithm is more reliably transmitted over longer coaxial cables. The figure below shows an example of encoding and parallel-to-serial conversion of 8-bit parallel RED data.
 
 .. image:: images/17_media/image2.jpeg
    
       
-第一步：将8位并行RED数据发送到TMDS发送端。
+Step 1: Send the 8-bit parallel RED data to the TMDS transmitter.
 
-第二步：并/串转换.
+Step 2: Parallel-to-serial conversion.
 
-第三步：进行最小化传输处理，加上第9位，即编码过程。第9位数据称为编码位。
+Step 3: Perform transition minimization processing by adding the 9th bit, which is the encoding process. The 9th bit is called the encoding bit.
 
-2.直流平衡
+2. DC Balancing
 
-直流平衡（DC-balanced）就是指在编码过程中保证信道中直流偏移为零。方法是在原来的9位数据的后面加上第10位数据，这样，传输的数据趋于直流平衡，使信号对传输线的电磁干扰减少，提高信号传输的可靠性。
+DC balancing (DC-balanced) means ensuring zero DC offset in the channel during the encoding process. The method is to add a 10th bit after the original 9-bit data. This way, the transmitted data tends toward DC balance, reducing electromagnetic interference on the transmission line and improving transmission reliability.
 
-3.差分信号
+3. Differential Signaling
 
-TMDS差分传动技术是一种利用2个引脚间电压差来传送信号的技术。传输数据的数值（“0”或者“1”）由两脚间电压正负极性和大小决定。即，采用2根线来传输信号，一根线上传输原来的信号，另一根线上传输与原来信号相反的信号。这样接收端就可以通过让一根线上的信号减去另一根线上的信号的方式来屏蔽电磁干扰，从而得到正确的信号。
+TMDS differential transmission technology uses the voltage difference between 2 pins to transmit signals. The data value ("0" or "1") is determined by the polarity and magnitude of the voltage between the two pins. That is, 2 wires are used to transmit the signal — one wire carries the original signal, and the other carries the inverted signal. This way, the receiver can subtract the signal on one wire from the signal on the other to reject electromagnetic interference and obtain the correct signal.
 
-如下图所示：
+As shown in the figure below:
 
 .. image:: images/17_media/image3.jpeg
    
       
- 另外，还有一个显示数据通道（DDC），是用于读取表示接收端显示器的清晰度等显示能力的扩展显示标识数据(EDID)的信号线。搭载HDCP（High-bandwidth Digital Content
-Protection，高带宽数字内容保护技术）的发送、接收设备之间也利用DDC线进行密码键的认证。
+ Additionally, there is a Display Data Channel (DDC), which is a signal line used to read the Extended Display Identification Data (EDID) that describes the receiver display's capabilities such as resolution. Devices equipped with HDCP (High-bandwidth Digital Content
+Protection) also use the DDC line for authentication key exchange between transmitting and receiving devices.
 
-视频时序标准
-~~~~~~~~~~~~
+Video Timing Standards
+~~~~~~~~~~~~~~~~~~~~~~
 
-HDMI显示器扫描方式从屏幕左上角一点开始，从左向右逐点扫描，每扫描完一行,电子束回到屏幕的左边下一行的起始位置，在这期间，CRT对电子束进行消隐，每行结束时，用行同步信号进行同步；当扫描完所有的行，形成一帧，用场同步信号进行场同步，并使扫描回到屏幕左上方，同时进行场消隐，开始下一帧。
+An HDMI display scans starting from the top-left corner of the screen, scanning point by point from left to right. After each line is scanned, the electron beam returns to the beginning of the next line on the left side of the screen. During this time, the CRT blanks the electron beam. At the end of each line, a horizontal sync signal is used for synchronization. When all lines have been scanned to form a frame, a vertical sync signal is used for vertical synchronization, and the scan returns to the top-left of the screen while vertical blanking occurs, beginning the next frame.
 
-完成一行扫描的时间称为水平扫描时间，其倒数称为行频率；完成一帧（整屏）扫描的时间称为垂直扫描时间，其倒数称为场频率，即刷新一屏的频率，常见的有60Hz，75Hz等等。标准的显示的场频60Hz。
+The time to complete one line scan is called the horizontal scan time, and its reciprocal is called the line frequency. The time to complete one frame (full screen) scan is called the vertical scan time, and its reciprocal is called the field frequency, i.e., the screen refresh rate. Common values include 60Hz, 75Hz, etc. The standard display field frequency is 60Hz.
 
-时钟频率：以1024x768@59.94Hz(60Hz)为例，每场对应806个行周期,其中768为显示行。每显示行包括1344点时钟,其中1024点为有效显示区。由此可知：需要点时钟频率：806*1344*60约65MHz。
+Clock frequency: Taking 1024x768@59.94Hz (60Hz) as an example, each frame corresponds to 806 line periods, of which 768 are display lines. Each display line includes 1344 clock cycles, of which 1024 are the active display area. Therefore, the required pixel clock frequency is: 806 × 1344 × 60 ≈ 65MHz.
 
 .. image:: images/17_media/image4.png
       
-视频时序
+Video Timing
 
-VGA扫描，基本元素是行扫描，多行组成一帧，下图显示一行的时序，其中“Active”Video是一行视频的有效像素，大部分分辨率时钟中Top/Left Border 和 Bottom / Right Border都是0。“Blanking”是一行的同步时间，“Blanking”时间加上Active”Video时间就是一行的时间。“Blanking”又分为“Front Porch”、“Sync”、“Back Porch”三段。
+VGA scanning uses line scanning as the basic element, with multiple lines forming a frame. The figure below shows the timing of one line, where "Active" Video represents the valid pixels of a line. In most resolution standards, Top/Left Border and Bottom/Right Border are 0. "Blanking" is the synchronization time of a line. The "Blanking" time plus the "Active" Video time equals the total time for one line. "Blanking" is further divided into three segments: "Front Porch", "Sync", and "Back Porch".
 
 .. image:: images/17_media/image5.png
       
-行同步时序
+Horizontal Sync Timing
 
-以下是720p的时序参数
+The following are the timing parameters for 720p
 
-|image1|\ 1280x720@60Hz时序参数
+|image1|\ 1280x720@60Hz Timing Parameters
 
-Vivado工程建立
---------------
+Building the Vivado Project
+---------------------------
 
-本实验将实现HDMI输出显示，verilog实现编程驱动HDMI输出，在HDMI显示器里显示测试图像彩条。HDMI输出显示模块分成3个模块实现，分别是时钟模块vidio_pll,彩条生成模块color_bar和VGA转DVI模块rgb2dvi。实现的逻辑框图如下：
+This experiment will implement HDMI output display. Verilog is used to program and drive the HDMI output, displaying test color bar images on an HDMI monitor. The HDMI output display module is divided into 3 sub-modules: the clock module vidio_pll, the color bar generation module color_bar, and the VGA-to-DVI module rgb2dvi. The logic block diagram is as follows:
 
 .. image:: images/17_media/image7.png
 
-添加HDMI 编码器IP核
-~~~~~~~~~~~~~~~~~~~
+Adding the HDMI Encoder IP Core
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) 新建一个名为“hdmi_output_test”的工程
+1) Create a new project named "hdmi_output_test"
 
-VGA的数据很多人都比较清楚，为RGB数据，而HDMI为TMDS差分信号，RGB数据在FPGA比较容易操作，那么我们需要做的就是把RGB数据转成HDMI的TMDS差分信号，因此采用了RGB to DVI的IP（DVI与HDMI都是TMDS信号）。
+Many people are familiar with VGA data, which is RGB data, while HDMI uses TMDS differential signals. RGB data is easy to work with in FPGA, so what we need to do is convert RGB data to HDMI TMDS differential signals. Therefore, we use the RGB to DVI IP (both DVI and HDMI use TMDS signals).
 
-2) 复制repo文件夹（这个文件夹可以到给的例程工程中找到）到工程目录，这个文件夹里包含了HDMI编码器的IP，是别的厂家提供
+2) Copy the repo folder (this folder can be found in the provided example project) to the project directory. This folder contains the HDMI encoder IP provided by a third-party vendor.
 
 .. image:: images/17_media/image8.png
       
-3) 点击“IP Catalog”，默认这些IP和都是Xilinx提供，现在我们要添加第三方IP，或者我们自己做的IP
+3) Click "IP Catalog". By default, these IPs are all provided by Xilinx. Now we need to add third-party IPs or our own custom IPs.
 
 .. image:: images/17_media/image9.png
       
-4) 右键“Add Repository...”
+4) Right-click and select "Add Repository..."
 
 .. image:: images/17_media/image10.png
       
-5) 路径选择刚才复制的repo文件夹
+5) Select the path to the repo folder that was copied earlier.
 
 .. image:: images/17_media/image11.png
       
-6) 添加IP成功提示添加了多少个IP
+6) A success message will indicate how many IPs were added.
 
 .. image:: images/17_media/image12.png
       
-7) 找到“RGB to DVI Video Encoder(Source)”，双击
+7) Find "RGB to DVI Video Encoder(Source)" and double-click it.
 
 .. image:: images/17_media/image13.png
       
-8) 弹出下面窗口，“Component Name”元件名保持不变，其他参数也不用改，点击“OK”
+8) In the pop-up window, keep the "Component Name" unchanged and leave other parameters as default, then click "OK".
 
 .. image:: images/17_media/image14.png
       
-9) 弹出一个“Generate Output Products”窗口，其中“Number of jobs”指线程数量，越高越快
+9) A "Generate Output Products" window will appear, where "Number of jobs" refers to the number of threads — higher is faster.
 
 .. image:: images/17_media/image15.png
       
-10) 可以看到一个名为rgb2dvi_0
+10) You can now see an IP named rgb2dvi_0.
 
 .. image:: images/17_media/image16.png
       
-添加像素时钟PLL模块
-~~~~~~~~~~~~~~~~~~~
+Adding the Pixel Clock PLL Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-为了驱动HDMI编码器，需要提供像素时钟和5倍像素时钟，5倍像素时钟用于10:1串行化。
+To drive the HDMI encoder, a pixel clock and a 5x pixel clock are needed. The 5x pixel clock is used for 10:1 serialization.
 
-1) 在“IP Catlog”窗口搜索关键字“clock”，双击“Clocking Wizard”
+1) In the "IP Catalog" window, search for the keyword "clock" and double-click "Clocking Wizard".
 
 .. image:: images/17_media/image17.png
       
-2) 这次给元件起个名字，在“Component Name”中填写“video_clock”，“clk_in1”填写50，这里50Mhz和开发板PL端晶振频率一致。
+2) This time, give the component a name. Enter "video_clock" in the "Component Name" field, and set "clk_in1" to 50. The 50MHz here matches the crystal oscillator frequency on the PL side of the development board.
 
 .. image:: images/17_media/image18.png
       
-3) 输出时钟“clk_out1”用于视频像素时钟，这里填写74.25，这是1280x720@60分辨率的像素时钟，每一种分辨率的像素时钟都不同，需要非常了解视频标准才能知道每一种视频分辨率的像素时钟，“clk_out2”用于编码器串行化，像素时钟的5倍，这里填写371.25，然后点击“OK”生成IP。
+3) The output clock "clk_out1" is used as the video pixel clock. Enter 74.25 here, which is the pixel clock for the 1280x720@60 resolution. The pixel clock differs for each resolution, and a thorough understanding of video standards is needed to know the pixel clock for each video resolution. "clk_out2" is used for encoder serialization at 5 times the pixel clock. Enter 371.25 here, then click "OK" to generate the IP.
 
 .. image:: images/17_media/image19.png
       
-添加彩条发生模块
-~~~~~~~~~~~~~~~~
+Adding the Color Bar Generator Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-4) 彩条发生模块是一段Verilog代码，用于产生视频时序和水平方向的8个彩条，可以到给的例程中复制现有代码。在color_bar文件中定义了不同分辨率的参数，供用户使用。
+4) The color bar generator module is a piece of Verilog code used to generate video timing and 8 horizontal color bars. The existing code can be copied from the provided example project. The color_bar file defines parameters for different resolutions for user reference.
 
 .. image:: images/17_media/image20.png
       
-添加video_define文件，在其中定义了1280x720的宏
+Add the video_define file, which contains the macro definitions for 1280x720.
 
 |image2|\ |image3|
 
-添加顶层模块
-~~~~~~~~~~~~
+Adding the Top-Level Module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-5) top模块例化了彩条发生模块，HDMI编码模块，和像素时钟生成模块，代码参考例程给的工程。
+5) The top module instantiates the color bar generator module, the HDMI encoder module, and the pixel clock generation module. Refer to the code in the provided example project.
 
 .. image:: images/17_media/image23.png
       
-添加XDC约束文件
----------------
+Adding the XDC Constraint File
+-------------------------------
 
-添加以下的xdc约束文件到项目中，在约束文件里添加了时钟和HDMI相关的管脚。
+Add the following XDC constraint file to the project. The constraint file includes pin assignments for the clock and HDMI-related signals.
 
 .. image:: images/17_media/image24.png
       
@@ -192,27 +192,26 @@ VGA的数据很多人都比较清楚，为RGB数据，而HDMI为TMDS差分信号
  set_property PACKAGE_PIN V16 [get_ports hdmi_oen]
  set_property IOSTANDARD LVCMOS33 [get_ports hdmi_oen]
 
-下载调试
---------
+Download and Debug
+------------------
 
-保存工程并编译生成bit文件，连接HDMI接口到HDMI显示器，需要注意，这里使用1280x720@60Hz，请确保自己的显示器支持这个分辨率。
+Save the project and compile to generate the bit file. Connect the HDMI interface to an HDMI monitor. Note that this experiment uses 1280x720@60Hz, so please ensure your monitor supports this resolution.
 
 .. image:: images/17_media/image25.png
       
 .. image:: images/17_media/image26.png
       
-AX7020/AX7010硬件连接图
+AX7020/AX7010 Hardware Connection Diagram
 
-下载后显示器显示如下图像
+The monitor will display the following image after downloading
 
 .. image:: images/17_media/image27.png
       
-实验总结
---------
+Experiment Summary
+------------------
 
-本实验初步接触到视频显示，涉及到视频知识，这不是zynq学习的重点，zynq在视频处理领域用途广泛，需要学习者有良好的基础知识。实验中仅仅使用PL来驱动HDMI芯片，初步学习了第三方自定IP的用法，后面我们会学习如何自定义IP。
+This experiment provides an initial introduction to video display and involves video-related knowledge. This is not the focus of ZYNQ learning, but ZYNQ is widely used in the video processing field, and learners need a solid foundation of knowledge. In this experiment, only the PL is used to drive the HDMI output. We have learned the basics of using third-party custom IPs, and in later chapters, we will learn how to create custom IPs.
 
 .. |image1| image:: images/17_media/image6.png
 .. |image2| image:: images/17_media/image21.png
 .. |image3| image:: images/17_media/image22.png
-      

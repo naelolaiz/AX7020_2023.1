@@ -1,5 +1,5 @@
-基础篇
-======
+Basics
+========
 
-基础篇主要介绍ZYNQ核的配置，PS端的应用，如MIO,EMIO，以太网，定时器等的使用，以及添加一些PL端的外设，比如AXI
-GPIO，自定义IP如何使用，PS与PL端的数据交互等基础实验，为后面的应用打下基础。
+The Basics section mainly introduces the configuration of the ZYNQ core, PS-side applications such as MIO, EMIO, Ethernet, timers, etc., as well as adding some PL-side peripherals such as AXI
+GPIO, how to use custom IPs, data exchange between the PS and PL sides, and other fundamental experiments to lay the foundation for later applications.

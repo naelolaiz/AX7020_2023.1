@@ -1,18 +1,18 @@
-自定义IP实验
-==============
+Custom IP Experiment
+====================
 
-**实验Vivado工程为“custom_pwm_ip”。**
+**The Vivado project for this experiment is "custom_pwm_ip".**
 
-Xilinx官方为大家提供了很多IP核，在Vivado的IP Catalog中可以查看这些IP核，
-用户在构建自己的系统中，不可能只使用Xilinx官方的免费IP核，很多时候需要创建属于自己的用户IP核，创建自己的IP核有很多好处，例如系统设计定制化；设计复用，可以在在IP核中加入license,
-有偿提供给别人使用；简化系统设计和缩短设计时间。用ZYNQ系统设计IP核，最常用的就是使用AXI总线将PS同PL部分的IP核连接起来。本实验将为大家介绍如何在Vivado中构建AXI总线类型的IP核，此IP核用来产生一个PWM，用这个控制开发板上的LED，做一个呼吸灯的效果。
+Xilinx officially provides many IP cores, which can be viewed in the IP Catalog of Vivado.
+When building their own systems, users cannot rely solely on the free IP cores provided by Xilinx. In many cases, it is necessary to create custom user IP cores. Creating your own IP cores has many benefits, such as customized system design; design reuse, with the ability to add licenses to IP cores and
+provide them to others for a fee; and simplifying system design while reducing design time. When designing IP cores with the ZYNQ system, the most common approach is to use the AXI bus to connect the PS to the IP cores in the PL section. This experiment will introduce how to build an AXI bus type IP core in Vivado. This IP core is used to generate a PWM signal to control the LED on the development board, creating a breathing light effect.
 
-PWM介绍
--------
+PWM Introduction
+----------------
 
-我们经常使用PWM来控制LED，蜂鸣器等，通过调节脉冲的占空比来调节LED的亮度。
+We often use PWM to control LEDs, buzzers, etc., by adjusting the duty cycle of the pulse to adjust the brightness of the LED.
 
-在其他开发板中我们使用过的一个pwm模块如下：
+A PWM module we have used in other development boards is as follows:
 
 .. code:: verilog
 
@@ -51,7 +51,7 @@ PWM介绍
  `timescale 1ns / 1ps
  module ax_pwm
  #(
- 	parameter N = 32 //pwm bit width 
+ parameter N = 32 //pwm bit width 
  )
  (
      input         clk,
@@ -105,122 +105,122 @@ PWM介绍
  
  endmodule
 
-可以看到这个PWM模块需要2个参数“period”、“duty”来控制频率和占空比，”period”为步进值，也就是计数器每个周期要加的值。Duty为占空比的值。我们需要设计一些寄存器来控制这些参数，这里需要使用AXI总线，PS通过AXI总线来读写寄存器。
+As you can see, this PWM module requires 2 parameters "period" and "duty" to control the frequency and duty cycle. "period" is the step value, which is the value the counter adds each cycle. Duty is the duty cycle value. We need to design some registers to control these parameters, which requires the use of the AXI bus, where the PS reads and writes registers through the AXI bus.
 
-PWM频率 = :math:`\frac{period}{2\hat{}N} \times clk频率` (单位为Hz)
+PWM Frequency = :math:`\frac{period}{2\hat{}N} \times clk frequency` (unit: Hz)
 
-PWM占空比 = 1 - :math:`\frac{duty + 1}{2\hat{}N}`
+PWM Duty Cycle = 1 - :math:`\frac{duty + 1}{2\hat{}N}`
 
-Vivado工程建立
---------------
+Vivado Project Setup
+--------------------
 
-用”ps_hello”工程另存为一个名为“custom_pwm_ip”工程
+Save the "ps_hello" project as a new project named "custom_pwm_ip"
 
-创建自定义IP
-~~~~~~~~~~~~
+Create Custom IP
+~~~~~~~~~~~~~~~~
 
-1) 点击菜单“Tools->Create and Package IP...”
+1) Click the menu "Tools->Create and Package IP..."
 
 .. image:: images/07_media/image1.png
       
-2) 选择“Next”
+2) Select "Next"
 
 .. image:: images/07_media/image2.png
       
-3) 选择创建一个新的AXI4设备
+3) Select to create a new AXI4 peripheral
 
 .. image:: images/07_media/image3.png
       
-4) 名称填写“ax_pwm”,描述填写“alinx pwm”，然后选择一个合适的位置用来放IP
+4) Enter "ax_pwm" for the name, "alinx pwm" for the description, and then select a suitable location to store the IP
 
 .. image:: images/07_media/image4.png
       
-5) 下面参数可以指定接口类型、寄存器数量等，这里不需要修改，使用AXI Lite Slave接口，4个寄存器。
+5) The following parameters can specify the interface type, number of registers, etc. No modification is needed here; use the AXI Lite Slave interface with 4 registers.
 
 .. image:: images/07_media/image5.png
       
-6) 点击“Finish”完成IP的创建
+6) Click "Finish" to complete the IP creation
 
 .. image:: images/07_media/image6.png
       
-7) 在“IP Catalog”中可以看到刚才创建的IP
+7) The newly created IP can be seen in the "IP Catalog"
 
 .. image:: images/07_media/image7.png
       
-8) 这个时候的IP只有简单的寄存器读写功能，我们需要修改IP，选择IP，右键“Edit in IP Packager”
+8) At this point, the IP only has simple register read/write functionality. We need to modify the IP. Select the IP, right-click "Edit in IP Packager"
 
 .. image:: images/07_media/image8.png
       
-9) 这是弹出一个对话框，可以填写工程名称和路径，这里默认，点击“OK”
+9) A dialog box pops up where you can fill in the project name and path. Use the defaults here and click "OK"
 
 .. image:: images/07_media/image9.png
       
-10) Vivado打开了一个新的工程
+10) Vivado opens a new project
 
 .. image:: images/07_media/image10.png
       
-11) 添加PWM功能的核心代码
+11) Add the core code for the PWM functionality
 
 .. image:: images/07_media/image11.png
       
-12) 添加代码时选择复制代码到IP目录
+12) When adding code, select to copy the code to the IP directory
 
 .. image:: images/07_media/image12.png
       
-13) 修改“ax_pwm_v1_0.v”，添加一个pwm输出端口
+13) Modify "ax_pwm_v1_0.v" to add a PWM output port
 
 .. image:: images/07_media/image13.png
       
-14) 修改“ax_pwm_v1_0.v”，在例化“ax_pwm_V1_0_S00_AXI”,中添加pwm端口的例化
+14) Modify "ax_pwm_v1_0.v" to add the PWM port instantiation in the instantiation of "ax_pwm_V1_0_S00_AXI"
 
 .. image:: images/07_media/image14.png
       
-15) 修改“ax_pwm_v1_0_s00_AXI.v”文件，添加pwm端口，这个文件是实现AXI4 Lite Slave的核心代码
+15) Modify the "ax_pwm_v1_0_s00_AXI.v" file to add the PWM port. This file is the core code implementing the AXI4 Lite Slave
 
 .. image:: images/07_media/image15.png
       
-16) 修改“ax_pwm_v1_0_s00_AXI.v”文件，例化pwm核心功能代码，将寄存器slv_reg0和slv_reg1用于pwm模块的参数控制。
+16) Modify the "ax_pwm_v1_0_s00_AXI.v" file to instantiate the PWM core functionality code, using registers slv_reg0 and slv_reg1 to control the PWM module parameters.
 
 .. image:: images/07_media/image16.png
       
-17) 双击“component.xml”文件
+17) Double-click the "component.xml" file
 
 .. image:: images/07_media/image17.png
       
-18) 在“File Groups”选项中点击“Merge changers from File Groups Wizard”
+18) In the "File Groups" option, click "Merge changes from File Groups Wizard"
 
 .. image:: images/07_media/image18.png
       
-19) 在“Customization Parameters”选项中点击“Merge changes form Customization Parameters Wizard”
+19) In the "Customization Parameters" option, click "Merge changes from Customization Parameters Wizard"
 
 .. image:: images/07_media/image19.png
       
-20) 点击“Re-Package IP”完成IP的修改
+20) Click "Re-Package IP" to complete the IP modification
 
 .. image:: images/07_media/image20.png
       
-添加自定义IP到工程
-~~~~~~~~~~~~~~~~~~
+Add Custom IP to Project
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) 搜索“pwm”，添加“ax_pwm_v1.0”
+1) Search for "pwm" and add "ax_pwm_v1.0"
 
 .. image:: images/07_media/image21.png
       
-2) 点击“Run Connection Automation”
+2) Click "Run Connection Automation"
 
 .. image:: images/07_media/image22.png
       
-3) 导出pwm端口
+3) Export the PWM port
 
 .. image:: images/07_media/image23.png
       
 .. image:: images/07_media/image24.png
       
-4) 保存设计，并Generate Output Products
+4) Save the design and Generate Output Products
 
 .. image:: images/07_media/image25.png
       
-5) 添加xdc文件分配管脚，把pwm_0输出端口分配给PL LED1，做一个呼吸灯
+5) Add an XDC file to assign pins, assigning the pwm_0 output port to PL LED1 to create a breathing light
 
 ::
 
@@ -229,26 +229,26 @@ Vivado工程建立
 
 .. image:: images/07_media/image26.png
       
-1) 编译生成bit文件，导出硬件
+1) Compile to generate the bit file and export hardware
 
 .. image:: images/07_media/image27.png
          
-Vitis软件编写调试
------------------
+Vitis Software Development and Debugging
+-----------------------------------------
 
-1) 启动Vitis，新建APP，模板选择“Hello World”
+1) Launch Vitis, create a new APP, and select the "Hello World" template
 
 .. image:: images/07_media/image28.png
             
-2) 前面的例都是使用xilinx的IP，xilinx大多都提供一套API，对于这个自定义IP，我们需要自己开发，先看看APP的目录下的资源，可以找到一个ax_pwm.h的文件，这个文件里包含里对自定义IP寄存器的读写宏定义
+2) The previous examples all used Xilinx IPs, for which Xilinx mostly provides a set of APIs. For this custom IP, we need to develop our own. First, let's look at the resources in the APP directory. You can find an ax_pwm.h file, which contains macro definitions for reading and writing the custom IP registers
 
 .. image:: images/07_media/image29.png
       
-3) 在bsp里找到“xparameters.h”文件，这个非常重要的文件，里面找到了自定IP的寄存器基地址，可以找到自定义IP的基地址。
+3) Find the "xparameters.h" file in the BSP. This is a very important file where you can find the register base address of the custom IP.
 
 .. image:: images/07_media/image30.png
       
-4) 有个寄存器读写宏和自定义IP的基地址，我们开始编写代码，测试自定义IP，我们先通过写寄存器AX_PWM_S00_AXI_SLV_REG0_OFFSET，控制PWM输出频率，然后通过写寄存器AX_PWM_S00_AXI_SLV_REG1_OFFSET控制PWM输出的占空比。
+4) With the register read/write macros and the base address of the custom IP, we can start writing code to test the custom IP. We first write to register AX_PWM_S00_AXI_SLV_REG0_OFFSET to control the PWM output frequency, then write to register AX_PWM_S00_AXI_SLV_REG1_OFFSET to control the PWM output duty cycle.
 
 .. code:: c
 
@@ -268,45 +268,45 @@ Vitis软件编写调试
  
      print("Hello World\n\r");
  
- 	//pwm out period = frequency(pwm_out) * (2^N) / frequency(clk);
- 	AX_PWM_mWriteReg(XPAR_AX_PWM_0_S00_AXI_BASEADDR, AX_PWM_S00_AXI_SLV_REG0_OFFSET, 17179);//200hz
- 	//duty = (2^N) * (1 - (duty cycle)) - 1
- 	while (1) {
- 		for (duty = 0x8fffffff; duty < 0xffffffff; duty = duty + 100000) {
- 			AX_PWM_mWriteReg(XPAR_AX_PWM_0_S00_AXI_BASEADDR, AX_PWM_S00_AXI_SLV_REG1_OFFSET, duty);
- 			usleep(100);
- 		}
- 	}
+ //pwm out period = frequency(pwm_out) * (2^N) / frequency(clk);
+ AX_PWM_mWriteReg(XPAR_AX_PWM_0_S00_AXI_BASEADDR, AX_PWM_S00_AXI_SLV_REG0_OFFSET, 17179);//200hz
+ //duty = (2^N) * (1 - (duty cycle)) - 1
+ while (1) {
+ for (duty = 0x8fffffff; duty < 0xffffffff; duty = duty + 100000) {
+ AX_PWM_mWriteReg(XPAR_AX_PWM_0_S00_AXI_BASEADDR, AX_PWM_S00_AXI_SLV_REG1_OFFSET, duty);
+ usleep(100);
+ }
+ }
  
      cleanup_platform();
      return 0;
  }
 
-1) 通过运行代码，我们可以看到PL LED1呈现出一个呼吸灯的效果。
+1) By running the code, we can see that PL LED1 displays a breathing light effect.
 
-2) 通过debug，我们来查看一下寄存器
+2) Through debugging, let's examine the registers
 
 .. image:: images/07_media/image31.png
       
-7) 进入debug状态，按“F6”可以单步运行。
+7) Enter the debug state, press "F6" for single-step execution.
 
 .. image:: images/07_media/image32.png
       
-8) 通过菜单可以查看“Memory”窗口
+8) The "Memory" window can be viewed through the menu
 
 .. image:: images/07_media/image33.png
       
-9) 添加一个监视地址“0x43c00000”
+9) Add a monitor address "0x43c00000"
 
 .. image:: images/07_media/image34.png
       
 .. image:: images/07_media/image35.png
       
-10) 单步运行，观察变化
+10) Single-step execution, observe the changes
 
 .. image:: images/07_media/image36.png
       
-实验总结
---------
+Experiment Summary
+------------------
 
-通过本实验我们掌握了更多的Vitis调试技巧，掌握了ARM + FPGA开发的核心内容，就是ARM和FPGA数据交互。
+Through this experiment, we have mastered more Vitis debugging techniques and the core content of ARM + FPGA development, which is the data interaction between ARM and FPGA.

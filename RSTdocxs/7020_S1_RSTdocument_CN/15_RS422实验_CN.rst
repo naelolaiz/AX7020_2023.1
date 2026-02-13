@@ -1,29 +1,29 @@
-RS422实验
-===========
+RS422 Experiment
+================
 
-**实验Vivado工程为“rs422_test”。**
+**The Vivado project for this experiment is "rs422_test".**
 
-本章利用AN3485模块实现RS422接口数据传输。关于模块，在前面的RS232实验中已经介绍过，本实验不再赘述。RS422与RS232在与FPGA的连接的接口上是一样的，都是TXD和RXD，因此，本实验在RS232实验的基础上，例化出两路连接到RS422接口芯片MAX3490上。
+This chapter uses the AN3485 module to implement RS422 interface data transmission. The module has already been introduced in the previous RS232 experiment and will not be repeated here. The RS422 and RS232 interfaces to the FPGA are the same, both using TXD and RXD. Therefore, this experiment is based on the RS232 experiment, instantiating two channels connected to the RS422 interface chip MAX3490.
 
 .. image:: images/15_media/image1.png
       
-RS422接口部分原理图
+RS422 interface schematic
 
-程序设计
---------
+Program Design
+--------------
 
-程序设计比较简单，以RS232实验为基础，例化两路uart_test即可。
+The program design is relatively simple. Based on the RS232 experiment, simply instantiate two uart_test modules.
 
 .. image:: images/15_media/image2.png
       
-实验测试
---------
+Experiment Testing
+------------------
 
-RS422的接口部分是差分的信号，共四根信号线，两根发送TXD+和TXD-，对应Y和Z，两根接收RXD+和RXD-，对应A和B。
+The RS422 interface uses differential signals with a total of four signal lines: two for transmitting TXD+ and TXD-, corresponding to Y and Z, and two for receiving RXD+ and RXD-, corresponding to A and B.
 
 .. image:: images/15_media/image3.png
       
-与RS232实验一样，也采用USB转串口的设备连接，使用杜绑线将模块的RS422_1的Y和Z分别与设备的R+和R-连接，将模块的A和B分别与设备的T+和T-连接。
+Similar to the RS232 experiment, a USB-to-serial device is used for connection. Use jumper wires to connect the module's RS422_1 Y and Z to the device's R+ and R- respectively, and connect the module's A and B to the device's T+ and T- respectively.
 
 .. image:: images/15_media/image4.png
       
@@ -31,7 +31,7 @@ RS422的接口部分是差分的信号，共四根信号线，两根发送TXD+�
       
 .. image:: images/15_media/image6.png
       
-下载程序后，即可在串口工具中看到RS232实验同样的效果，可以利用同样的方法测试RS422_2接口。
+After downloading the program, the same results as the RS232 experiment can be observed in the serial port tool. The RS422_2 interface can be tested using the same method.
 
 .. image:: images/15_media/image7.png
       

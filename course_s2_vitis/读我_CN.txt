@@ -3,7 +3,7 @@
 #  Author: JunFN                                                               //
 #          853808728@qq.com                                                    //
 #          ALINX(shanghai) Technology Co.,Ltd                                  //
-#          黑金                                                                //
+#          ALINX                                                               //
 #     WEB: http://www.alinx.cn/                                                //
 #                                                                              //
 #////////////////////////////////////////////////////////////////////////////////
@@ -25,72 +25,72 @@
 #  2023/8/22                   1.0          Original
 #=================================================================================
 
-文档使用说明：
+Documentation Usage Instructions:
 
-文档结构
+Document Structure
 course_s1
-   ├── 01_led/                     # 用于恢复vivado工程的Tcl脚本文件夹（包括所需源文件）
+   ├── 01_led/                     # Tcl script folder for restoring Vivado project (including required source files)
    │   │
    │   │ 
-   │   └── auto_create_project/                         # 创建vivado工程
-   │        ├── src/  #创建vivado工程的源文件、批处理文件、tcl文件
-   │        │         ├── block_design  #BD文件
-   │        │         ├── constraints   #约束文件
-   │        │         ├── design        #.v源文件
-   │        │         └── testbench     #激励文件
+   │   └── auto_create_project/                         # Create Vivado project
+   │        ├── src/  # Source files, batch files, and tcl files for creating Vivado project
+   │        │         ├── block_design  # BD file
+   │        │         ├── constraints   # Constraint files
+   │        │         ├── design        # .v source files
+   │        │         └── testbench     # Testbench files
    │        │ 
-   │        ├── led.bat  #.bat批处理文件
-   │        └── led.tcl  #Tcl脚本文件
+   │        ├── led.bat  # .bat batch file
+   │        └── led.tcl  # Tcl script file
    │ 
    ├──  02_pll/
    └──  ....../
 
 course_s2
-   ├── 01_ps_hello/                          # 用于恢复vivado工程的Tcl脚本文件夹（包括所需源文件）
+   ├── 01_ps_hello/                          # Tcl script folder for restoring Vivado project (including required source files)
    │   │
-   │   ├── Bootimage                         #存放的boot.bin文件
+   │   ├── Bootimage                         # Stored boot.bin file
    │   │
-   │   ├── Vitis                             # vitis工程
-   │   │    ├── auto_create_vitis/           #创建vitis工程的源文件、.bat批处理文件、tcl文件
-   │   │    │         ├── src                #.C/.h源文件
-   │   │    │         ├── build_vitis.bat    #批处理文件
-   │   │    │         └── build_vitis.tcl    #tcl文件
+   │   ├── Vitis                             # Vitis project
+   │   │    ├── auto_create_vitis/           # Source files, .bat batch files, and tcl files for creating Vitis project
+   │   │    │         ├── src                # .C/.h source files
+   │   │    │         ├── build_vitis.bat    # Batch file
+   │   │    │         └── build_vitis.tcl    # tcl file
    │   │    │         
-   │   │    └── design_1_wrapper.xsa         #硬件信息
+   │   │    └── design_1_wrapper.xsa         # Hardware information
    │   │ 
-   │   └── Vivado                             # vivado工程
-   │        ├── auto_create_project/          #创建vivado工程的源文件、.bat批处理文件、tcl文件
-   │        │         ├── my_ip/              #自定义IP
-   │        │         ├── src/                #源文件、约束文件、激励文件
-   │        │         ├── create_project.bat  #批处理文件
-   │        │         ├── create_project.tcl  #tcl文件
-   │        │         ├── pl_config.tcl       #PL端tcl文件
-   │        │         └── ps_config.tcl       #PS端tcl文件
+   │   └── Vivado                             # Vivado project
+   │        ├── auto_create_project/          # Source files, .bat batch files, and tcl files for creating Vivado project
+   │        │         ├── my_ip/              # Custom IP
+   │        │         ├── src/                # Source files, constraint files, testbench files
+   │        │         ├── create_project.bat  # Batch file
+   │        │         ├── create_project.tcl  # tcl file
+   │        │         ├── pl_config.tcl       # PL side tcl file
+   │        │         └── ps_config.tcl       # PS side tcl file
    │        │
-   │        └── design_1_wrapper.bit  #比特流文件
+   │        └── design_1_wrapper.bit  # Bitstream file
    │ 
    ├──  02_ps_timer/
    └──  ....../
 
 
-创建Vivado工程步骤
+Steps to Create a Vivado Project
 
-1.解压压缩包
-2.打开对应工程；例如：C:\Users\Administrator\Desktop\vivado_2023.1\AX7010_2023.1\course_s1_fpga\01_led
-3.打开S1教程打开auto_create_project文件夹；S2教程打开vivado/auto_create_project文件夹
-4.用文本编辑器打开create_project.bat文件，修改D:\Xilinx2023.1\Vivado\2023.1\bin\vivado.bat路径到自己的2023.1版本下，保存
-5.双击create_project.bat文件，等待vivado创建工程
-6.完成工程的创建，在create_project.bat文件的上一级目录下可以看到刚生成的vivado工程文件夹
-7.双击打开对应的工程文件夹中的.xpr文件
-8.等待GUI界面的打开
+1. Extract the zip package
+2. Open the corresponding project; for example: C:\Users\Administrator\Desktop\vivado_2023.1\AX7010_2023.1\course_s1_fpga\01_led
+3. For S1 tutorial, open the auto_create_project folder; for S2 tutorial, open the vivado/auto_create_project folder
+4. Open the create_project.bat file with a text editor, modify the D:\Xilinx2023.1\Vivado\2023.1\bin\vivado.bat path to your own 2023.1 version path, save
+5. Double-click create_project.bat file, wait for Vivado to create the project
+6. Project creation is complete. In the parent directory of the create_project.bat file, you can see the newly generated Vivado project folder
+7. Double-click to open the .xpr file in the corresponding project folder
+8. Wait for the GUI interface to open
 
-创建Vitis工程步骤
+Steps to Create a Vitis Project
 
-1.解压压缩包
-2.打开对应工程；例如：C:\Users\Administrator\Desktop\vivado_2023.1\AX7010_2023.1\course_s2_vitis\01_ps_hello
-3.打开S2教程Vitis/auto_create_vitis文件夹
-4.用文本编辑器打开build_vitis.bat文件，修改D:\Xilinx2023.1\Vitis\2023.1\bin\xsct.bat路径到自己的2023.1版本下，保存
-5.双击build_vitis.bat文件，等待创建vitis工程
-6.完成工程的创建，在build_vitis.bat文件的上一级目录下可以看到刚生成的vitis工程文件夹
-7.运行vitis软件，找到C:\Users\Administrator\Desktop\vivado_2023.1\AX7010_2023.1\course_s2_vitis\01_ps_hello\Vitis这个路径下
-8.完成vitis工程的创建
+1. Extract the zip package
+2. Open the corresponding project; for example: C:\Users\Administrator\Desktop\vivado_2023.1\AX7010_2023.1\course_s2_vitis\01_ps_hello
+3. Open the S2 tutorial Vitis/auto_create_vitis folder
+4. Open the build_vitis.bat file with a text editor, modify the D:\Xilinx2023.1\Vitis\2023.1\bin\xsct.bat path to your own 2023.1 version path, save
+5. Double-click the build_vitis.bat file, wait for the Vitis project to be created
+6. Project creation is complete. In the parent directory of the build_vitis.bat file, you can see the newly generated Vitis project folder
+7. Run the Vitis software, navigate to C:\Users\Administrator\Desktop\vivado_2023.1\AX7010_2023.1\course_s2_vitis\01_ps_hello\Vitis
+8. Vitis project creation is complete

@@ -1,124 +1,124 @@
-FPGA片内RAM读写测试实验
-=========================
+FPGA On-Chip RAM Read/Write Test Experiment
+=============================================
 
-**实验Vivado工程为“ram_test”。**
+**The Vivado project for this experiment is "ram_test".**
 
-RAM是FPGA中常用的基础模块，可广泛用于缓存数据的情况，同样它也是ROM，FIFO的基础。本实验将为大家介绍如何使用FPGA内部的RAM以及程序对该RAM的数据读写操作。
+RAM is a commonly used fundamental module in FPGAs, widely employed for data buffering, and it also serves as the basis for ROM and FIFO. This experiment will introduce how to use the internal RAM of an FPGA and perform data read/write operations on the RAM.
 
-实验原理
---------
+Experiment Principle
+--------------------
 
-Xilinx在VIVADO里为我们已经提供了RAM的IP核,我们只需通过IP核例化一个RAM，根据RAM的读写时序来写入和读取RAM中存储的数据。实验中会通过VIVADO集成的在线逻辑分析仪ila，我们可以观察RAM的读写时序和从RAM中读取的数据。
+Xilinx has already provided us with a RAM IP core in VIVADO. We only need to instantiate a RAM through the IP core and write/read data stored in the RAM according to the RAM's read/write timing. In the experiment, through the online logic analyzer (ILA) integrated in VIVADO, we can observe the RAM's read/write timing and the data read from the RAM.
 
-创建Vivado工程
---------------
+Create Vivado Project
+---------------------
 
-在添加RAM IP之前先新建一个ram_test的工程, 然后在工程中添加RAM IP，方法如下：
+Before adding the RAM IP, first create a new project called ram_test, then add the RAM IP to the project as follows:
 
-1. 点击下图中IP Catalog，在右侧弹出的界面中搜索ram，找到Block Memory Generator,双击打开。
+1. Click on IP Catalog as shown in the figure below. In the interface that pops up on the right side, search for ram, find Block Memory Generator, and double-click to open it.
 
 .. image:: images/07_media/image1.png
       
-2. 将Component Name改为ram_ip,在Basic栏目下，将Memory Type改为Simple Dual Prot RAM，也就是伪双口RAM。一般来讲"Simple Dual Port RAM"是最常用的，因为它是两个端口，输入和输出信号独立。
+2. Change the Component Name to ram_ip. Under the Basic tab, change the Memory Type to Simple Dual Port RAM, which is a pseudo dual-port RAM. Generally speaking, "Simple Dual Port RAM" is the most commonly used, because it has two ports with independent input and output signals.
 
 .. image:: images/07_media/image2.png
       
-3. 切换到Port A Options栏目下，将RAM位宽Port A Width改为16，也就是数据宽度。将RAM深度Port A Depth改为512，深度指的是RAM里可以存放多少个数据。使能管脚Enable Port Type改为Always Enable。\ |image1|
+3. Switch to the Port A Options tab. Change the RAM bit width Port A Width to 16, which is the data width. Change the RAM depth Port A Depth to 512; depth refers to how many data entries can be stored in the RAM. Change the Enable Port Type to Always Enable.\ |image1|
 
-4. 切换到Port B Options栏目下，将RAM位宽Port B Width改为16，使能管脚Enable Port Type改为Always Enable，当然也可以Use ENB Pin，相当于读使能信号。而Primitives Output Register取消勾选，其功能是在输出数据加上寄存器，可以有效改善时序，但读出的数据会落后地址两个周期。很多情况下，不使能这项功能，保持数据落后地址一个周期。
+4. Switch to the Port B Options tab. Change the RAM bit width Port B Width to 16, and change the Enable Port Type to Always Enable. Of course, you can also use Use ENB Pin, which acts as a read enable signal. Uncheck Primitives Output Register; its function is to add a register to the output data, which can effectively improve timing, but the read data will lag behind the address by two clock cycles. In many cases, this feature is not enabled, keeping the data lagging behind the address by one clock cycle.
 
 .. image:: images/07_media/image4.png
       
-5. 在Other Options栏目中，这里不像ROM那样需要初始化RAM的数据，我们可以在程序中写入，所以配置默认即可，直接点击OK。
+5. In the Other Options tab, unlike ROM, there is no need to initialize the RAM data here. We can write data in the program, so keep the default configuration and click OK directly.
 
 .. image:: images/07_media/image5.png
       
-6) 点击“Generate”生成RAM IP。
+6) Click "Generate" to generate the RAM IP.
 
 .. image:: images/07_media/image6.png
       
-RAM的端口定义和时序
--------------------
+RAM Port Definitions and Timing
+--------------------------------
 
-Simple Dual Port RAM 模块端口的说明如下：
+The port descriptions of the Simple Dual Port RAM module are as follows:
 
 +-----------------+-------------+-------------------------------------+
-| 信号名称        | 方向        | 说明                                |
+| Signal Name     | Direction   | Description                         |
 +=================+=============+=====================================+
-| clka            | in          | 端口A时钟输入                       |
+| clka            | in          | Port A clock input                  |
 +-----------------+-------------+-------------------------------------+
-| wea             | in          | 端口A使能                           |
+| wea             | in          | Port A write enable                 |
 +-----------------+-------------+-------------------------------------+
-| addra           | in          | 端口A地址输入                       |
+| addra           | in          | Port A address input                |
 +-----------------+-------------+-------------------------------------+
-| dina            | in          | 端口A数据输入                       |
+| dina            | in          | Port A data input                   |
 +-----------------+-------------+-------------------------------------+
-| clkb            | in          | 端口B时钟输入                       |
+| clkb            | in          | Port B clock input                  |
 +-----------------+-------------+-------------------------------------+
-| addrb           | in          | 端口B地址输入                       |
+| addrb           | in          | Port B address input                |
 +-----------------+-------------+-------------------------------------+
-| doutb           | out         | 端口B数据输输出                     |
+| doutb           | out         | Port B data output                  |
 +-----------------+-------------+-------------------------------------+
 
-RAM的数据写入和读出都是按时钟的上升沿操作的，端口A数据写入的时候需要置高wea信号，同时提供地址和要写入的数据。下图为输入写入到RAM的时序图。
+RAM data writing and reading are both performed on the rising edge of the clock. When writing data through Port A, the wea signal needs to be asserted high, while simultaneously providing the address and the data to be written. The figure below shows the timing diagram for writing data into the RAM.
 
 .. image:: images/07_media/image7.png
       
-**RAM写时序**
+**RAM Write Timing**
 
-而端口B是不能写入数据的，只能从RAM中读出数据，只要提供地址就可以了，一般情况下可以在下一个周期采集到有效的数据。
+Port B cannot write data; it can only read data from the RAM. You only need to provide the address, and generally valid data can be captured in the next clock cycle.
 
 .. image:: images/07_media/image8.png
       
-**RAM读时序**
+**RAM Read Timing**
 
-测试程序编写
-------------
+Writing the Test Program
+------------------------
 
-下面进行RAM的测试程序的编写，由于测试RAM的功能，我们向RAM的端口A写入一串连续的数据，只写一次，并从端口B中读出，使用逻辑分析仪查看数据。代码如下
+Now let's write the RAM test program. To test the RAM functionality, we write a series of consecutive data to Port A of the RAM, writing only once, and read it out from Port B, using the logic analyzer to view the data. The code is as follows:
 
 .. code:: verilog
 
  `timescale 1ns / 1ps
  //////////////////////////////////////////////////////////////////////////////////
  module ram_test(
- 			input clk,		          	//50MHz时钟
- 			input rst_n	             	//复位信号，低电平有效	
+ 			input clk,		          	//50MHz clock
+ 			input rst_n	             	//Reset signal, active low	
  		);
  
  //-----------------------------------------------------------
- reg		[8:0]  		w_addr;	   		//RAM PORTA写地址
- reg		[15:0] 		w_data;	   		//RAM PORTA写数据
- reg 	      		wea;	    	//RAM PORTA使能
- reg		[8:0]  		r_addr;	  	 	//RAM PORTB读地址
- wire	[15:0] 		r_data;			//RAM PORTB读数据
+ reg		[8:0]  		w_addr;	   		//RAM PORTA write address
+ reg		[15:0] 		w_data;	   		//RAM PORTA write data
+ reg 	      		wea;	    	//RAM PORTA enable
+ reg		[8:0]  		r_addr;	  	 	//RAM PORTB read address
+ wire	[15:0] 		r_data;			//RAM PORTB read data
  
- //产生RAM PORTB读地址
+ //Generate RAM PORTB read address
  always @(posedge clk or negedge rst_n)
  begin
    if(!rst_n) 
  	r_addr <= 9'd0;
-   else if (|w_addr)			//w_addr位或，不等于0
+   else if (|w_addr)			//Bitwise OR of w_addr, not equal to 0
      r_addr <= r_addr+1'b1;
    else
  	r_addr <= 9'd0;	
  end
  
- //产生RAM PORTA写使能信号
+ //Generate RAM PORTA write enable signal
  always@(posedge clk or negedge rst_n)
  begin	
    if(!rst_n) 
    	  wea <= 1'b0;
    else 
    begin
-      if(&w_addr) 			//w_addr的bit位全为1，共写入512个数据，写入完成
+      if(&w_addr) 			//All bits of w_addr are 1, 512 data entries written, writing complete
          wea <= 1'b0;                 
       else               
-         wea	<= 1'b1;        //ram写使能
+         wea	<= 1'b1;        //RAM write enable
    end 
  end 
  
- //产生RAM PORTA写入的地址及数据
+ //Generate RAM PORTA write address and data
  always@(posedge clk or negedge rst_n)
  begin	
    if(!rst_n) 
@@ -128,11 +128,11 @@ RAM的数据写入和读出都是按时钟的上升沿操作的，端口A数据�
    end
    else 
    begin
-      if(wea) 					//ram写使能有效
+      if(wea) 					//RAM write enable active
  	 begin        
- 		if (&w_addr)			//w_addr的bit位全为1，共写入512个数据，写入完成
+ 		if (&w_addr)			//All bits of w_addr are 1, 512 data entries written, writing complete
  		begin
- 			w_addr <= w_addr ;	//将地址和数据的值保持住，只写一次RAM
+ 			w_addr <= w_addr ;	//Hold address and data values, write to RAM only once
  			w_data <= w_data ;
  		end
  		else
@@ -145,7 +145,7 @@ RAM的数据写入和读出都是按时钟的上升沿操作的，端口A数据�
  end 
  
  //-----------------------------------------------------------
- //实例化RAM	
+ //Instantiate RAM	
  ram_ip ram_ip_inst (
    .clka      (clk          ),     // input clka
    .wea       (wea          ),     // input [0 : 0] wea
@@ -156,7 +156,7 @@ RAM的数据写入和读出都是按时钟的上升沿操作的，端口A数据�
    .doutb     (r_data       )      // output [15 : 0] doutb
  );
  
- //实例化ila逻辑分析仪
+ //Instantiate ILA logic analyzer
  ila_0 ila_0_inst (
  	.clk	(clk	), 
  	.probe0	(r_data	), 
@@ -166,15 +166,15 @@ RAM的数据写入和读出都是按时钟的上升沿操作的，端口A数据�
  	
  endmodule
 
-为了能实时看到RAM中读取的数据值，我们这里添加了ila工具来观察RAM PORTB的数据信号和地址信号。关于如何生成ila大家请参考”PL的”Hello World”LED实验”。
+In order to view the data values read from the RAM in real time, we added the ILA tool here to observe the data signal and address signal of RAM PORTB. For how to generate the ILA, please refer to the "PL 'Hello World' LED Experiment".
 
 .. image:: images/07_media/image9.png
       
-程序结构如下：
+The program structure is as follows:
 
 .. image:: images/07_media/image10.png
       
-绑定引脚
+Pin Binding
 
 ::
 
@@ -186,19 +186,19 @@ RAM的数据写入和读出都是按时钟的上升沿操作的，端口A数据�
  set_property IOSTANDARD LVCMOS33 [get_ports {rst_n}]
  set_property PACKAGE_PIN N15 [get_ports {rst_n}]
 
-仿真
-----
+Simulation
+----------
 
-仿真方法参考”PL的”Hello World”LED实验”，仿真结果如下，从图中可以看出地址1写入的数据是0002，在下个周期，也就是时刻2，有效数据读出。
+For the simulation method, refer to the "PL 'Hello World' LED Experiment". The simulation results are as follows. From the figure, it can be seen that the data written to address 1 is 0002, and in the next clock cycle, i.e., at time 2, the valid data is read out.
 
 .. image:: images/07_media/image11.png
       
-板上验证
---------
+Board Verification
+------------------
 
-生成bitstream，并下载bit文件到FPGA。接下来我们通过ila来观察一下从RAM中读出的数据是否为我们初始化的数据。
+Generate the bitstream and download the bit file to the FPGA. Next, we will use the ILA to observe whether the data read from the RAM matches the data we initialized.
 
-在Waveform的窗口设置r_addr地址为0作为触发条件，我们可以看到r_addr在不断的从0累加到1ff, 随着r_addr的变化, r_data也在变化, r_data的数据正是我们写入到RAM中的512个数据，这里需要注意，r_addr出现新地址时，r_data对应的数据要延时两个时钟周期才会出现，数据比地址出现晚两个时钟周期，与仿真结果一致。
+In the Waveform window, set the r_addr address to 0 as the trigger condition. We can see that r_addr continuously increments from 0 to 1ff. As r_addr changes, r_data also changes. The r_data values are exactly the 512 data entries we wrote into the RAM. It should be noted here that when a new address appears on r_addr, the corresponding r_data takes two clock cycles to appear, meaning the data appears two clock cycles later than the address, which is consistent with the simulation results.
 
 .. image:: images/07_media/image12.png
       

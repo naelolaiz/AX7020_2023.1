@@ -1,52 +1,52 @@
-PS定时器中断实验
-==================
+PS Timer Interrupt Experiment
+==============================
 
-**实验Vivado工程为“ps_timer”(基于”ps_hello”工程另存为)。**
+**The Vivado project for this experiment is "ps_timer" (saved from the "ps_hello" project).**
 
-很多SOC内部都会有定时器，ZYNQ的PS也有，对于ZYNQ内到底有什么外设，这些外设有什么特性，都是开发者必须关心的，因此建议经常阅读xilinx文档UG585。本章的实验用的是CPU Private Timer，即私有定时器。
+Many SOCs have built-in timers, and so does the PS of ZYNQ. Developers must be aware of what peripherals are inside the ZYNQ and what features these peripherals have. Therefore, it is recommended to frequently read the Xilinx document UG585. The timer used in this chapter's experiment is the CPU Private Timer.
 
 .. image:: images/02_media/image1.png
       
-ZYNQ定时器结构图
+ZYNQ Timer Architecture Diagram
 
-打开工程“ps_hello”，另存为一个名为”ps_timer”的工程
+Open the "ps_hello" project and save it as a new project named "ps_timer".
 
-中断介绍
---------
+Interrupt Introduction
+----------------------
 
-翻开UG585中断部分，Zynq中断大致可分为三个部分，1为SGI，软件生成的中断，共16个端口；2为PPI，CPU私有外设中断，有5个；3为SPI，共享外设中断，来自于44个PS端的IO外设以及16个PL端的中断。中间部分为GIC，也即中断控制器，用于对中断进行使能、关闭、掩码、设置优先等。
+Referring to the interrupt section of UG585, Zynq interrupts can be roughly divided into three parts: 1) SGI (Software Generated Interrupts), with 16 ports; 2) PPI (CPU Private Peripheral Interrupts), with 5 ports; 3) SPI (Shared Peripheral Interrupts), from 44 PS-side IO peripherals and 16 PL-side interrupts. The middle part is the GIC (General Interrupt Controller), used to enable, disable, mask, and set priorities for interrupts.
 
 .. image:: images/02_media/image2.png
       
-以下为中断控制器框图，主要的控制器部分为ICC和ICD，ICD连接SGI和PPI，ICD连接SPI，可配置两者的寄存器来控制中断。
+Below is the interrupt controller block diagram. The main controller parts are ICC and ICD. ICD connects to SGI and PPI, ICD connects to SPI. You can configure the registers of both to control interrupts.
 
 .. image:: images/02_media/image3.png
       
-SGI中断（软件产生中断），共16个IRQ ID号
+SGI Interrupts (Software Generated Interrupts), 16 IRQ ID numbers in total
 
 .. image:: images/02_media/image4.png
       
-PPI中断，CPU私有中断，共5个IRQ ID号
+PPI Interrupts, CPU Private Interrupts, 5 IRQ ID numbers in total
 
 .. image:: images/02_media/image5.png
       
 .. image:: images/02_media/image6.png
       
-SPI中断部分，共60个IRQ ID号
+SPI Interrupt section, 60 IRQ ID numbers in total
 
 .. image:: images/02_media/image7.png
       
 .. image:: images/02_media/image8.png
       
-中断寄存器介绍
---------------
+Interrupt Register Introduction
+-------------------------------
 
-用Xilinx的API函数就可以很好的控制中断，如果有兴趣可以深入了解中断寄存器，可以对其机制有更好的认识。
+Interrupts can be well controlled using Xilinx's API functions. If you are interested, you can delve deeper into the interrupt registers to gain a better understanding of the mechanism.
 
 .. image:: images/02_media/image9.png
       
 ICDICFR:
-配置寄存器，用于配置触发方式，电平触发或边沿触发，共有6个，每个寄存器32位，每两位表示一个中断，32*6/2=96个中断号，能覆盖所有中断。
+Configuration register, used to configure the trigger mode, either level-triggered or edge-triggered. There are 6 registers in total, each 32 bits wide. Every two bits represent one interrupt, 32*6/2=96 interrupt numbers, covering all interrupts.
 
 ICDICFR0: IRQ ID#0~#15
 
@@ -60,122 +60,122 @@ ICDICFR4: IRQ ID#64~#79
 
 ICDICFR5: IRQ ID#80~#95
 
-对于SPI中断 0b01：高电平触发 0b11：上升沿触发
+For SPI interrupts: 0b01: high-level triggered, 0b11: rising-edge triggered
 
 ICDIPR:
-中断优先级寄存器，设置优先级，共24个寄存器，每8位代表一个中断号，共96个中断号。
+Interrupt priority register, used to set priority. There are 24 registers in total, with every 8 bits representing one interrupt number, totaling 96 interrupt numbers.
 
-ICDIPTR: CPU选择寄存器，24个寄存器，每8位代表一个中断号，共96个
+ICDIPTR: CPU selection register, 24 registers, every 8 bits represent one interrupt number, 96 in total
 
 0bxxxxxxx1: CPU interface 0
 
 0bxxxxxx1x: CPU interface 1
 
-ICDICER: 中断关闭寄存器，3个寄存器，每1位代表一个中断号，共96个
+ICDICER: Interrupt disable register, 3 registers, every 1 bit represents one interrupt number, 96 in total
 
-ICDISER: 中断使能寄存器，3个寄存器，每1位代表一个中断号，共96个
+ICDISER: Interrupt enable register, 3 registers, every 1 bit represents one interrupt number, 96 in total
 
-关于其余的寄存器，大家可以研究UG585的寄存器表中的mpcore部分。
+For the remaining registers, you can study the mpcore section in the register table of UG585.
 
 .. image:: images/02_media/image10.png
       
-软件工程师工作内容
-------------------
+Software Engineer's Work
+------------------------
 
-以下为软件工程师负责内容。
+The following is the content that the software engineer is responsible for.
 
-Vitis程序编写
--------------
+Vitis Program Development
+-------------------------
 
-创建Platform工程
-~~~~~~~~~~~~~~~~
+Creating a Platform Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) 点击ToolsLaunch Vitis
+1) Click Tools -> Launch Vitis
 
 .. image:: images/02_media/image11.png
       
-2) 与前面的Hello World实验不同，我们只建立Platform工程
+2) Unlike the previous Hello World experiment, we only create a Platform project
 
 .. image:: images/02_media/image12.png
          
-3) 填入工程名字，点击Next
+3) Enter the project name and click Next
 
 .. image:: images/02_media/image13.png
          
-4) 点击“Create a new platform hardware(XSA)，软件已经提供了一些板卡的硬件平台，但对于
+4) Click "Create a new platform hardware (XSA)". The software already provides some board hardware platforms, but for
 
-5) 我们自己的硬件平台，可以选择browse
+5) our own hardware platform, we can select browse
 
 .. image:: images/02_media/image14.png
          
-6) 选择XSA文件
+6) Select the XSA file
 
 .. image:: images/02_media/image15.png
          
-保持默认，点击Finish
+Keep the defaults and click Finish
 
 .. image:: images/02_media/image16.png
       
-7) 点开platform.spr，并点开BSP
+7) Open platform.spr and expand BSP
 
 .. image:: images/02_media/image17.png
       
-8) 找到定时器驱动，并点击Import Examples
+8) Find the timer driver and click Import Examples
 
 .. image:: images/02_media/image18.png
       
-9) 非常幸运，有一个定时器中断的例子，怎么就知道这个例子就是中断的例子呢？是通过“intr”猜测的，所以，基本功很重要，不然你连找例程都不会。
+9) Fortunately, there is a timer interrupt example. How do we know this example is an interrupt example? It is guessed from the "intr" keyword. So, having a solid foundation is important, otherwise you won't even be able to find example programs.
 
 .. image:: images/02_media/image19.png
       
-10) 在这里就导入了example工程
+10) The example project is now imported here
 
 .. image:: images/02_media/image20.png
       
-下面就是阅读代码，然后修改代码了，当然，可能一下不能完全理解这些代码，只能在以后的应用中去反复练习
+Next, we read the code and then modify it. Of course, you may not fully understand the code right away, and can only improve through repeated practice in future applications.
 
-11) 本实验设计一个1秒定时器中断一次，然后打印出信息，30秒后结束。在UG585文档中我们得知，定时器的时钟频率为CPU频率的一半，首先要修改计数器最大值，修改为CPU频率的一半，也就是计数器的时钟频率值，这样就会1秒中断一次
+11) This experiment designs a timer that triggers an interrupt once every second, prints information, and ends after 30 seconds. From the UG585 document, we learn that the timer clock frequency is half of the CPU frequency. First, we need to modify the counter maximum value to half the CPU frequency, which is the timer clock frequency value. This way, an interrupt will occur once every second.
 
 .. image:: images/02_media/image21.png
       
 .. image:: images/02_media/image22.png
       
-CPU频率的宏定义可以在xparameters.h中找到
+The macro definition for CPU frequency can be found in xparameters.h
 
 .. image:: images/02_media/image23.png
       
-12) 修改计数次数3改为30
+12) Change the count number from 3 to 30
 
 .. image:: images/02_media/image24.png
       
-13) 添加打印信息，保存文件
+13) Add print information and save the file
 
 .. image:: images/02_media/image25.png
       
-14) Build Project编译
+14) Build Project to compile
 
 .. image:: images/02_media/image26.png
       
-15) 了解一下中断控制器的使用，主要分为几个步骤，初始化中断控制器\ *GIC初始化中断异常中断服务函数注册在中断控制器中使能中断使能外设中断使能中断异常*\ 。有两步需要注意，\ *在中断控制器中使能中断*
-是要根据中断号使能相应的中断，比如本章介绍的Timer为私有定时器，中断号为29，是在中断控制器GIC中的操作，而后面的\ *使能外设中断*
-是指在外设中打开它的中断，正常情况下是不打开的，打开之后就可以产生中断传递到中断控制器GIC。在以后的实验中可以借鉴这种写法。
+15) Let's understand the usage of the interrupt controller. It mainly consists of several steps: initialize the interrupt controller, \ *GIC initialization, interrupt exception, interrupt service function registration, enable interrupt in the interrupt controller, enable peripheral interrupt, enable interrupt exception*\ . Two steps need attention: \ *enabling interrupt in the interrupt controller*
+means enabling the corresponding interrupt based on the interrupt number. For example, the Timer introduced in this chapter is a private timer with interrupt number 29, which is an operation in the interrupt controller GIC. The subsequent \ *enabling peripheral interrupt*
+refers to enabling the interrupt within the peripheral itself. Under normal circumstances, it is not enabled. Once enabled, the interrupt can be generated and passed to the interrupt controller GIC. This approach can be referenced in future experiments.
 
 .. image:: images/02_media/image27.png
       
 .. image:: images/02_media/image28.png
       
-下载调试
---------
+Download and Debug
+------------------
 
-1) 打开PuTTY串口终端
+1) Open the PuTTY serial terminal
 
-2) 下载调试程序的方法前面教程已经讲解，不再复述
+2) The method for downloading and debugging the program has been explained in previous tutorials and will not be repeated here
 
-3) 和我们预期一样，串口每秒会输出一句信息
+3) As expected, the serial port outputs a message every second
 
 .. image:: images/02_media/image29.png
       
-实验总结
---------
+Experiment Summary
+------------------
 
-实验中通过简单的修改Vitis的例程，就完成了定时器，中断的应用，看似简单的操作，可蕴含了丰富的知识，我们需要非常了解定时器的原理、中断的原理，这些基本知识是学习好ZYNQ的必要条件。
+In this experiment, by simply modifying the Vitis example program, we completed the timer and interrupt application. Although the operation seems simple, it contains a wealth of knowledge. We need to thoroughly understand the principles of timers and interrupts. This fundamental knowledge is a necessary condition for learning ZYNQ well.

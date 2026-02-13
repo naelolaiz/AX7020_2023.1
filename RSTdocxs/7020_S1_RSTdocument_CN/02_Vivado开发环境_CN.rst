@@ -1,33 +1,33 @@
-Vivado开发环境
-================
+Vivado Development Environment
+===============================
 
-Vivado软件介绍
---------------
+Introduction to Vivado Software
+-------------------------------
 
-一提起Xilinx的开发环境，人们总是先会想起ISE，而对Vivado不甚了解。其实，Vivado是Xilinx公司于2012推出的新一代集成设计环境。虽然目前其流行度并不高，但可以说Vivado代表了未来Xilinx FPGA开发环境的变化趋势。所以，作为一个Xilinx
-FPGA的开发使用者，学习掌握Vivado是趋势，也是必然。作为开发者，首先肯定有以下疑惑：既然已经有ISE存在了，为何Xilinx公司又花大力气去搞什么Vivado呢？在Vivado Design Suite User Guide : Getting
-Started(UG910)中提到，推出Vivado是为了提高设计者的效率，它能显著增加Xilinx的28nm工艺的可编程逻辑器件的设计、综合与
-实现效率。可以推测，随着FPGA进入28nm时代，ISE工具似乎就有些“不合时宜”了，硬件提升了，软件不提升的话，设计效率必然受影响。正是出于这
-一考虑，Xilinx公司于2008年开始便筹划推出新一代的软件开发环境，经历10年时间打造出了Vivado工具这一巅峰之作。
+When mentioning Xilinx's development environment, people always think of ISE first and are not very familiar with Vivado. In fact, Vivado is a new generation integrated design environment launched by Xilinx in 2012. Although its popularity is not yet high, it can be said that Vivado represents the future trend of Xilinx FPGA development environments. Therefore, as a Xilinx
+FPGA developer, learning and mastering Vivado is both a trend and a necessity. As a developer, the first question that comes to mind is: since ISE already exists, why did Xilinx put so much effort into creating Vivado? In the Vivado Design Suite User Guide : Getting
+Started(UG910), it is mentioned that Vivado was launched to improve designer efficiency, as it can significantly increase the design, synthesis, and
+implementation efficiency for Xilinx's 28nm process programmable logic devices. It can be inferred that as FPGAs entered the 28nm era, the ISE tool seemed somewhat "outdated" — if the hardware improves but the software does not, design efficiency is inevitably affected. It was precisely for this
+reason that Xilinx began planning to launch a new generation software development environment in 2008, and after 10 years of effort, created the masterpiece that is the Vivado tool.
 
-Vivado软件版本
---------------
+Vivado Software Version
+-----------------------
 
-Vivado的软件版本在不断的升级中，到目前为止最新的软件版本已经是2023.2了。因为ZYNQ开发板的所有例程和教程我们都在Vivado
-2023.1的开发环境中完成。为了避免软件版本版本的原因而导致一些无法解释的问题，还是希望大家学习过程中与我们保持同步。用户使用之前需要安装Vivado
-2023.1的软件。因为Vivado软件比较大，我们没有提供光盘安装文件，只提供下载链接，另外用户也可以到Xilinx的官网下载，官网下载需要注册相关账号。
+The Vivado software version is continuously being upgraded, and the latest version to date is already 2023.2. Since all the examples and tutorials for the ZYNQ development board were completed in the Vivado
+2023.1 development environment, to avoid unexplainable issues caused by software version differences, we recommend that you stay in sync with us during the learning process. Users need to install Vivado
+2023.1 software before use. Since the Vivado software is quite large, we do not provide a disc installation file, only a download link. Users can also download it from the Xilinx official website, which requires registering an account.
 
-Vivado软件的Xilinx官方下载地址：\ http://china.xilinx.com/support/download.html
+Xilinx official download address for Vivado software:\ http://china.xilinx.com/support/download.html
 
 .. image:: images/02_media/image1.png
    
       
-Vivado提供了Linux版和Windows版，还提供二合一版本，我们这里使用二合一版本，既能满足Windows开发又能满足Linux开发，Vivado要求操作系统必须是64位。
+Vivado provides Linux and Windows versions, as well as a combined version. Here we use the combined version, which can meet both Windows and Linux development needs. Vivado requires a 64-bit operating system.
 
-Vivado软件Windows下安装
------------------------
+Vivado Software Installation on Windows
+----------------------------------------
 
-1) 下载解压Vivado软件压缩包，直接点击xsetup.exe，进入安装，不过为了更好的安装，请关闭杀毒软件，各种电脑管家，电脑用户名不要有中文，和空格
+1) Download and extract the Vivado software package, then directly click xsetup.exe to start the installation. For a smoother installation, please close antivirus software and all PC management tools. The computer username should not contain Chinese characters or spaces.
 
 .. image:: images/02_media/image2.png
    
@@ -35,62 +35,62 @@ Vivado软件Windows下安装
 .. image:: images/02_media/image3.png
    
       
-2) 如果提示版本更新，我们忽略更新，点击“Continue”
+2) If prompted for a version update, ignore the update and click "Continue".
 
-3) 点击“next”进行安装，可以看到Vivado对系统要求
+3) Click "next" to proceed with the installation. You can see the system requirements for Vivado.
 
 .. image:: images/02_media/image4.png
    
       
-4) 选择需要安装的产品，如果不需要使用Vitis（取代之前的SDK）则仅选Vivado，一般Vivado是ZYNQ或者带有处理器硬核的芯片会用到，如果是纯FPGA硬件且自己不学习软件相关，则选择Vivado
+4) Select the product to install. If you do not need to use Vitis (which replaced the former SDK), select only Vivado. Generally, Vitis is needed for ZYNQ or chips with hard processor cores. If it is pure FPGA hardware and you do not plan to study software-related topics, select Vivado.
 
 .. image:: images/02_media/image5.png
    
       
-5) 这里选择安装的器件库，由于我们不需要UltraScale、UltraScale+和versal芯片，可以取消勾选，节省安装空间，其他保持默认，点击“next”
+5) Here you select the device libraries to install. Since we do not need UltraScale, UltraScale+, and Versal chips, you can uncheck them to save installation space. Keep the rest as default and click "next".
 
 .. image:: images/02_media/image6.png
    
       
-6) 选中“I agree”，点击“next”
+6) Check "I agree" and click "next".
 
 .. image:: images/02_media/image7.png
    
       
-7) 安装路径这里没有修改，安装路径不能有中文、空格等特殊字符，同时电脑的用户名不要是中文、带空格的名称。可以看到Vivado对硬盘大小的要求，至少要有190G。
+7) The installation path is not modified here. The installation path must not contain Chinese characters, spaces, or other special characters, and the computer username should not be in Chinese or contain spaces. You can see that Vivado requires at least 190GB of hard disk space.
 
 .. image:: images/02_media/image8.png
    
       
-8) 点击“Install”安装
+8) Click "Install" to start the installation.
 
 .. image:: images/02_media/image9.png
       
-9) 等待安装，时间较长，如果没有关闭杀毒软件和电脑管家，安装过程可能会被拦截，导致安装软件后不能使用
+9) Wait for the installation, which takes a long time. If antivirus software and PC management tools are not closed, the installation process may be intercepted, causing the installed software to be unusable.
 
 .. image:: images/02_media/image10.png
       
-10) 提示安装成功
+10) A prompt indicates the installation was successful.
 
 .. image:: images/02_media/image11.png
       
-11) 安装License文件，点击“Copy License”，选择“xilinx_ise_vivado.lic”文件。
+11) Install the License file. Click "Copy License" and select the "xilinx_ise_vivado.lic" file.
 
 .. image:: images/02_media/image12.png
       
-12) 可以看到安装成功
+12) You can see the installation was successful.
 
 .. image:: images/02_media/image13.png
       
-重新安装驱动
-------------
+Reinstalling the Driver
+-----------------------
 
-一般安装vivado时，都会安装下载器驱动。如果需要再次安装下载器驱动，进入vivado安装路径“X:\\XXX\\Vivado\\2023.1\\data\\xicom\\cable_drivers\\nt64\\digilent”下，双击“install_digilent.exe”文件安装，安装前先关闭vivado软件，如果vivado识别不到下载器，请尝试关闭防火墙，杀毒软件，也不能同时打开多个版本的vivado、ise。
+Generally, the downloader driver is installed along with Vivado. If you need to install the downloader driver again, navigate to the Vivado installation path "X:\\XXX\\Vivado\\2023.1\\data\\xicom\\cable_drivers\\nt64\\digilent" and double-click the "install_digilent.exe" file to install it. Before installation, close the Vivado software first. If Vivado cannot detect the downloader, try disabling the firewall and antivirus software. Also, do not open multiple versions of Vivado or ISE at the same time.
 
 .. image:: images/02_media/image14.png
    
       
-安装完成后，\ **连接下载器，**\ 打开设备管理器，在通用串行总线控制器里找到USB Serial Converter，说明安装成功
+After installation is complete,\ **connect the downloader,**\ open Device Manager, and find USB Serial Converter under Universal Serial Bus Controllers, which indicates a successful installation.
 
 .. image:: images/02_media/image15.png
       

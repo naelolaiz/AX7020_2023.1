@@ -1,66 +1,65 @@
-# Xilinx Zynq 7000 系列开发板AX7020  
-## 开发板介绍
-### 开发板简介
-此款开发板使用的是 Xilinx 公司的 Zynq7000 系列的芯片，型号为 XC7Z020-2CLG400I，
-400 个引脚的 FBGA 封装。ZYNQ7000 芯片可分成处理器系统部分 Processor System（PS）
-和可编程逻辑部分 Programmable Logic（PL）。在 AX7020 开发板上，ZYNQ7000 的 PS
-部分和 PL 部分都搭载了丰富的外部接口和设备，方便用户的使用和功能验证。另外开发板上
-集成了 Xilinx USB Cable 下载器电路，用户只要用一个 USB 线就可以对开发板进行下载和调
-试。
-### 关键特性
-  1. +5V 电源输入,最大 2A 电流保护； 
-  2. Xilinx ARM+FPGA 芯片 Zynq-7000 XC7Z020-2CLG400I   
-  3. 两片大容量的 4Gbit（共 8Gbit）高速 DDR3 SDRAM,可作为 ZYNQ 芯片数据的缓存，也可以作为操作系统运行的内存;
-  4. 一片 256Mbit 的 QSPI FLASH, 可用作 ZYNQ 芯片的系统文件和用户数据的存储;   
-  5. 一路10/100M/1000M以太网RJ-45接口, 可用于和电脑或其它网络设备进行以太网数据交换;  
-  6. 一路 HDMI 图像视频输入输出接口, 能实现 1080P 的视频图像传输； 
-  7. 一路高速 USB2.0 HOST 接口, 可用于开发板连接鼠标、键盘和 U 盘等 USB 外设;
-  8. 一路高速 USB2.0 OTG 接口, 用于和 PC 或 USB 设备的 OTG 通信; 
-  9. 一路 USB Uart 接口, 用于和 PC 或外部设备的串口通信;
-  10. 一片的 RTC 实时时钟，配有电池座，电池的型号为 CR1220。
-  11. 一片 IIC 接口的 EEPROM 24LC04;
-  12. 6 个用户发光二极管 LED, 2 个 PS 控制，4 个 PL 控制;
-  13. 7 个按键，1 个 CPU 复位按键，2 个 PS 控制按键，4 个 PL 控制按键；
-  14. 板载一个 33.333Mhz 的有源晶振，给 PS 系统提供稳定的时钟源，一个 50MHz 的有源晶振，为 PL 逻辑提供额外的时钟；
-  15. 一个 12 针的扩展口（2.54mm 间距），用于扩展 ZYNQ 的 PS 系统的 MIO；
-  16. 一路 USB JTAG 口，通过 USB 线及板载的 JTAG 电路对 ZYNQ 系统进行调试和下载。1 路 Micro SD 卡座(开发板背面），用于存储操作系统镜像和文件系统。
-  17. 2 路 40 针的扩展口（2.54mm 间距），用于扩展 ZYNQ 的 PL 部分的 IO。可以接 7 寸 TFT 模块、摄像头模块和 AD/DA 模块等扩展模块；
+# Xilinx Zynq 7000 Series Development Board AX7020  
+## Development Board Introduction
+### Development Board Overview
+This development board uses Xilinx's Zynq7000 series chip, model XC7Z020-2CLG400I,
+with a 400-pin FBGA package. The ZYNQ7000 chip can be divided into the Processor System (PS)
+and Programmable Logic (PL) parts. On the AX7020 development board, both the PS
+and PL parts of the ZYNQ7000 are equipped with a rich set of external interfaces and peripherals for user convenience and functional verification. Additionally, the development board
+integrates a Xilinx USB Cable downloader circuit, allowing users to download and debug the development board with just a USB cable.
+### Key Features
+  1. +5V power input, maximum 2A current protection; 
+  2. Xilinx ARM+FPGA chip Zynq-7000 XC7Z020-2CLG400I   
+  3. Two high-capacity 4Gbit (8Gbit total) high-speed DDR3 SDRAM, which can be used as data cache for the ZYNQ chip and also as memory for running the operating system;
+  4. One 256Mbit QSPI FLASH, which can be used for storing system files and user data of the ZYNQ chip;   
+  5. One 10/100M/1000M Ethernet RJ-45 interface, for Ethernet data exchange with computers or other network devices;  
+  6. One HDMI video input/output interface, capable of 1080P video image transmission; 
+  7. One high-speed USB2.0 HOST interface, for connecting peripherals such as mouse, keyboard, and USB drive;
+  8. One high-speed USB2.0 OTG interface, for OTG communication with PC or USB devices; 
+  9. One USB UART interface, for serial communication with PC or external devices;
+  10. One RTC real-time clock, equipped with a battery holder, battery model CR1220.
+  11. One EEPROM 24LC04 with IIC interface;
+  12. 6 user LEDs, 2 PS-controlled, 4 PL-controlled;
+  13. 7 buttons, 1 CPU reset button, 2 PS control buttons, 4 PL control buttons;
+  14. One 33.333MHz active crystal oscillator on board providing a stable clock source for the PS system, and one 50MHz active crystal oscillator providing an additional clock for PL logic;
+  15. One 12-pin expansion port (2.54mm pitch), for expanding the MIO of ZYNQ's PS system;
+  16. One USB JTAG port for debugging and downloading to the ZYNQ system via USB cable and onboard JTAG circuit. One Micro SD card slot (on the back of the development board), for storing operating system images and file systems.
+  17. Two 40-pin expansion ports (2.54mm pitch), for expanding the IO of ZYNQ's PL part. Can be connected to expansion modules such as 7-inch TFT module, camera module, and AD/DA module;
 
-# AX7020 文档教程链接
+# AX7020 Document Tutorial Link
 https://ax7020-20231-v101.readthedocs.io/zh-cn/latest/7020_S1_RSTdocument_CN/00_%E5%85%B3%E4%BA%8EALINX_CN.html
 
- 注意：文档的末尾页脚处可以切换中英文语言
+ Note: You can switch between Chinese and English languages at the footer at the end of the document
 
-# AX7020  例程
-## 例程描述
-此项目为开发板出厂例程，支持板卡上的大部分外设。
-## 开发环境及需求
+# AX7020 Examples
+## Example Description
+This project contains the factory examples for the development board, supporting most peripherals on the board.
+## Development Environment and Requirements
 * Vivado 2023.1
-* AX7020 开发板
-## 创建Vivado工程
-* 下载最新的ZIP包。
-* 创建新的工程文件夹.
-* 解压下载的ZIP包到此工程文件夹中。
+* AX7020 development board
+## Creating a Vivado Project
+* Download the latest ZIP package.
+* Create a new project folder.
+* Unzip the downloaded ZIP package into this project folder.
 
 
-有两种方法创建Vivado工程，如下所示：
-### 利用Vivado tcl console创建Vivado工程
-1. 打开Vivado软件并且利用**cd**命令进入"**auto_create_project**"目录，并回车
+There are two ways to create a Vivado project, as follows:
+### Using Vivado tcl console to create a Vivado project
+1. Open the Vivado software and use the **cd** command to enter the "**auto_create_project**" directory and press Enter
 ```
 cd \<archive extracted location\>/vivado/auto_create_project
 ```
-2. 输入 **source ./create_project.tcl** 并且回车
+2. Enter **source ./create_project.tcl** and press Enter
 ```
 source ./create_project.tcl
 ```
 
-### 利用bat创建Vivado工程
-1. 在 "**auto_create_project**" 文件夹, 有个 "**create_project.bat**"文件, 右键以编辑模式打开，并且修改vivado路径为本主机vivado安装路径，保存并关闭。
+### Using bat to create a Vivado project
+1. In the "**auto_create_project**" folder, there is a "**create_project.bat**" file, right-click to open it in edit mode, and modify the vivado path to your local vivado installation path, save and close.
 ```
 CALL E:\XilinxVitis\Vivado\2023.1\bin\vivado.bat -mode batch -source create_project.tcl
 PAUSE
 ```
-2. 在Windows下双击bat文件即可。
+2. Double-click the bat file under Windows.
 
 
-更多信息, 请访问[ALINX网站](https://www.alinx.com)
+For more information, please visit [ALINX website](https://www.alinx.com)
