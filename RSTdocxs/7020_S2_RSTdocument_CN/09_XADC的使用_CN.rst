@@ -1,141 +1,140 @@
-XADC的使用
-============
+Using XADC
+==========
 
-**实验Vivado工程为“ps_xadc”。**
+**The Vivado project for this experiment is "ps_xadc".**
 
-本章介绍XADC的使用，XADC内嵌在PS端，允许CPU或其他主机连接XADC，而不用使用PL端。XADC最大采样率为1MSPS，精度为12bits，内置电压和温度传感器，可监测芯片的电压及温度信息。如图所示电压传感器可监测芯片的VCCINT,VCCAUX,VCCBRAM等，VP_0和VN_0为一对专用的ADC模拟输入口。VAUXP[*]和VAUXN[*]也是ADC输入口，但是不用作ADC输入口时，可用作普通IO使用。在AX7015/AX7021/AX7010/AX7020/AX7Z035/AX7Z100开发板上这些引脚均未引出。因此本实验主要测量温度传感器Temperature
-Sensor以及电压传感器Supply Sensors的值。
+This chapter introduces the use of XADC. The XADC is embedded in the PS side, allowing the CPU or other hosts to connect to the XADC without using the PL side. The XADC has a maximum sampling rate of 1MSPS, a precision of 12 bits, and built-in voltage and temperature sensors that can monitor the chip's voltage and temperature information. As shown in the figure, the voltage sensors can monitor the chip's VCCINT, VCCAUX, VCCBRAM, etc. VP_0 and VN_0 are a pair of dedicated ADC analog input ports. VAUXP[*] and VAUXN[*] are also ADC input ports, but when not used as ADC inputs, they can serve as general-purpose IOs. On the AX7015/AX7021/AX7010/AX7020/AX7Z035/AX7Z100 development boards, these pins are not exposed. Therefore, this experiment mainly measures the values of the Temperature Sensor and the Supply Sensors.
 
 .. image:: images/09_media/image1.png
       
-本实验介绍三种读取传感器信息值的方法。首先需要新建Vivado工程，同样以“ps_hello”工程为基础，另存一个工程，不再赘述。
+This experiment introduces three methods to read sensor information values. First, a new Vivado project needs to be created. As before, save a copy based on the "ps_hello" project; the details will not be repeated here.
 
-Hardware读取XADC
-----------------
+Reading XADC via Hardware
+-------------------------
 
-1. 打开工程，连接好开发板电源，JTAG下载器，并将开发板调整为JTAG模式，开发板上电，点击Open Hardware Manager，再点击Auto Connect，发现硬件。
+1. Open the project, connect the development board power supply and JTAG downloader, set the development board to JTAG mode, power on the board, click Open Hardware Manager, then click Auto Connect to discover the hardware.
 
 .. image:: images/09_media/image2.png
       
-2. 右键选中XADC，新建Dashboard
+2. Right-click on XADC and create a new Dashboard.
 
 .. image:: images/09_media/image3.png
       
-3. 修改名称，点击OK
+3. Modify the name and click OK.
 
 .. image:: images/09_media/image4.png
       
-4. 默认会有温度信息
+4. Temperature information will be displayed by default.
 
 .. image:: images/09_media/image5.png
       
-5. 点击+将电压值添加到窗口
+5. Click + to add voltage values to the window.
 
 .. image:: images/09_media/image6.png
       
-6. 显示如下
+6. The display is as follows.
 
 .. image:: images/09_media/image7.png
       
-此方法优点是图形化显示，较为直观，但缺点是无法得到数据值。下面介绍PS读取XADC信息。
+The advantage of this method is the graphical display, which is intuitive, but the disadvantage is that data values cannot be obtained. The following section introduces reading XADC information via PS.
 
-PS读取XADC信息
---------------
+Reading XADC Information via PS
+-------------------------------
 
-1. 打开Vitis软件，新建Vitis工程，已经为大家准备好了程序，可拷贝到新的工程
+1. Open the Vitis software and create a new Vitis project. The program has already been prepared and can be copied to the new project.
 
 .. image:: images/09_media/image8.png
       
-2. 可以在BSP中看到PS自带有XADC外设
+2. In the BSP, you can see that the PS has a built-in XADC peripheral.
 
 .. image:: images/09_media/image9.png
       
-3. 在本实验中主要用到xadcps.h和xadcps_hw.h
+3. In this experiment, xadcps.h and xadcps_hw.h are mainly used.
 
 .. image:: images/09_media/image10.png
       
-4. 此实验现象为读取温度和电压的数据，并每隔1S通过串口打印出来。通过XAdcPs_GetAdcData函数读取原始值，用XAdcPs_RawToTemperature宏将ADC值转换为温度值。用XAdcPs_RawToVoltage转换为电压值。
+4. This experiment reads temperature and voltage data and prints it via the serial port every 1 second. The XAdcPs_GetAdcData function reads the raw values, the XAdcPs_RawToTemperature macro converts the ADC value to a temperature value, and XAdcPs_RawToVoltage converts it to a voltage value.
 
 .. image:: images/09_media/image11.png
       
-5. Run as下载后在串口工具中可看到打印信息如下：
+5. After downloading via Run As, the following print information can be seen in the serial port tool:
 
 .. image:: images/09_media/image12.png
       
-此方法简单方便，可以读取数据信息，但是其信号对于PL端来说是不可见的，灵活性差些。参考资料UG585，UG480。下面再介绍AXI总线方式读取数据。
+This method is simple and convenient for reading data information, but the signals are not visible to the PL side, making it less flexible. Reference materials: UG585, UG480. The following section introduces reading data via the AXI bus.
 
-AXI总线读取XADC信息
--------------------
+Reading XADC Information via AXI Bus
+-------------------------------------
 
-前面PS端读取XADC实验是通过查询的方式读取，本小节实验我们想在查询的基础上，添加中断，监测温度是否超过一定温度，如果超过了，就产生中断。
+In the previous PS-side XADC experiment, data was read by polling. In this section, we want to add interrupts on top of polling to monitor whether the temperature exceeds a certain threshold, and if it does, generate an interrupt.
 
-1. 添加XADC模块，按照默认点击Run Connection Automation
+1. Add the XADC module and click Run Connection Automation with the default settings.
 
 .. image:: images/09_media/image13.png
       
-2. 重新配置Zynq CPU，添加PL端中断，点击OK完成
+2. Reconfigure the Zynq CPU, add the PL-side interrupt, and click OK to finish.
 
 .. image:: images/09_media/image14.png
       
-3. 连接XADC中断到CPU中断口，重新Generate Output Products，此次需要生成Bitstream
+3. Connect the XADC interrupt to the CPU interrupt port, re-run Generate Output Products. This time, a Bitstream needs to be generated.
 
 .. image:: images/09_media/image15.png
       
-点击Generate Bitstream，生成FPGA下载文件。
+Click Generate Bitstream to generate the FPGA download file.
 
 .. image:: images/09_media/image16.png
       
-4. 重新Export Hardware，在这里在选中Include bitstream
+4. Re-export the hardware. Here, select Include bitstream.
 
 .. image:: images/09_media/image17.png
       
-5. XADC有很多报警信号alarm，如温度，电压等，此实验通过设置XADC的温度的Temp Upper和Temp Lower值，设置中断，一旦温度超过Temp Upper的值，就会触发中断
+5. The XADC has many alarm signals, such as temperature, voltage, etc. This experiment sets the XADC temperature Temp Upper and Temp Lower values to configure interrupts. Once the temperature exceeds the Temp Upper value, an interrupt will be triggered.
 
 .. image:: images/09_media/image18.png
       
-温度值与ADC Code值换算关系式如下，程序中有现成的公式可用
+The conversion formula between temperature values and ADC Code values is as follows. Ready-made formulas are available in the program.
 
 .. image:: images/09_media/image19.png
       
-6. 新建Vitis工程
+6. Create a new Vitis project.
 
 .. image:: images/09_media/image20.png
       
-7. 在BSP里多了一个模块，也就是刚才添加的XADC模块，用到了sysmon.h和sysmon_hw.h头文件。
+7. An additional module has been added in the BSP, which is the XADC module just added. It uses the sysmon.h and sysmon_hw.h header files.
 
 .. image:: images/09_media/image21.png
       
-8. 以下为设置温度的upper和lower值，打开全局中断和温度中断，中断寄存器可以在PG091文档中找到
+8. The following sets the temperature upper and lower values, enables the global interrupt and temperature interrupt. The interrupt registers can be found in the PG091 document.
 
 .. image:: images/09_media/image22.png
       
-温度中断使能为ALM[0]，打开此中断即可
+The temperature interrupt enable is ALM[0]; simply enable this interrupt.
 
 .. image:: images/09_media/image23.png
       
-XSysMon_IntrGlobalEnable(); 全局中断使能函数
+XSysMon_IntrGlobalEnable(); Global interrupt enable function.
 
-XSysMon_IntrEnable(); 中断使能函数，可使用MASK宏定义来确定需要打开的中断
+XSysMon_IntrEnable(); Interrupt enable function. MASK macro definitions can be used to specify which interrupts to enable.
 
-9. 中断服务程序中使用XsysMon_IntrGet_Status();函数读取中断状态寄存器，确定是否是温度中断，打印信息，最后使用XSysMon_IntrClear();函数清除中断
+9. In the interrupt service routine, use the XSysMon_IntrGetStatus(); function to read the interrupt status register, determine whether it is a temperature interrupt, print the information, and finally use the XSysMon_IntrClear(); function to clear the interrupt.
 
 .. image:: images/09_media/image24.png
       
-10. 打开Run Configuration窗口，新建System Debugger，选择Program FPGA，点击Run
+10. Open the Run Configuration window, create a new System Debugger, select Program FPGA, and click Run.
 
 .. image:: images/09_media/image25.png
       
-11. 程序中设置Upper为80摄氏度，在高于80度后会触发一次中断，等温度降到lower温度后，如果温度再次上升到Upper温度之上，又会触发中断。如下串口所示。
+11. The program sets the Upper threshold to 80 degrees Celsius. When the temperature exceeds 80 degrees, an interrupt will be triggered once. After the temperature drops to the Lower temperature, if it rises above the Upper temperature again, another interrupt will be triggered. As shown in the serial output below.
 
 .. image:: images/09_media/image26.png
       
-当然还有其他许多报警，可以通过配置Alarm Threshold寄存器和中断寄存器实现不同的监测功能。
+There are many other alarms available. Different monitoring functions can be implemented by configuring the Alarm Threshold registers and interrupt registers.
 
 .. image:: images/09_media/image27.png
       
-此种方法不但可以访问温度和电压传感器，还可以在PL端进行访问，本章不再做讲解。
+This method can not only access temperature and voltage sensors, but also allows access from the PL side. This will not be further explained in this chapter.
 
-本章小结
---------
+Chapter Summary
+---------------
 
-本章介绍了三种读取XADC的方法，各有优缺点，用户可根据需求选择需要的方式。
+This chapter introduced three methods for reading XADC, each with its own advantages and disadvantages. Users can choose the appropriate method based on their needs.
