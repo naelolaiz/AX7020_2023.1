@@ -1,149 +1,149 @@
-HDMI字符显示实验
-==================
+HDMI Character Display Experiment
+===================================
 
-**实验Vivado工程为“hdmi_char”。**
+**The Vivado project for this experiment is "hdmi_char".**
 
-在HDMI输出实验中讲解了HDMI显示原理和显示方式，本实验介绍如何使用FPGA实现字符显示，通过这个实验更加深入的了解HDMI的显示方式。
+The HDMI output experiment explained the HDMI display principles and display methods. This experiment introduces how to use FPGA to implement character display, providing a deeper understanding of HDMI display methods through this experiment.
 
-实验原理
---------
+Experiment Principle
+---------------------
 
-实验通过字符转换工具将字符转换为16进制coe文件存放到单端口的ROM IP 核中，再从ROM 中把转换后的数据读取出来显示到HDMI上。
+This experiment uses a character conversion tool to convert characters into hexadecimal coe files, which are stored in a single-port ROM IP core. The converted data is then read from the ROM and displayed on the HDMI output.
 
-程序设计
---------
+Program Design
+---------------
 
-字符显示例程是在HDMI显示的基础上增加了一个osd_display的模块，“osd_display”模块是用来读取存储在Rom ip核里转换后的字符信息，并在指定区域显示。程序框图如下图所示：
+The character display routine adds an osd_display module on top of the HDMI display framework. The "osd_display" module is used to read the converted character information stored in the ROM IP core and display it in a specified area. The program block diagram is shown below:
 
 .. image:: images/18_media/image1.png
 
-1. 在“timing_gen_xy”模块是根据HDMI时序标准定义了“x_cnt”和“y_cnt”两个计数器并由这两个计数器产生了HDMI显示的“x”坐标和“y”坐标。程序中用“vs_edge”和“de_falling”分别表示场同步开始信号和数据有效结束信号。其原理如下图所示：
+1. The "timing_gen_xy" module defines two counters "x_cnt" and "y_cnt" based on the HDMI timing standard, and these two counters generate the "x" and "y" coordinates for the HDMI display. In the program, "vs_edge" and "de_falling" represent the vertical sync start signal and data valid end signal, respectively. The principle is shown in the figure below:
 
 .. image:: images/18_media/image2.png
       
 +--------------------+-------+----------------------------------------+
-| 信号名称           | 方向  | 说明                                   |
+| Signal Name        | Dir   | Description                            |
 +====================+=======+========================================+
-| rst_n              | in    | 异步复位输入,低复位                    |
+| rst_n              | in    | Asynchronous reset input, active low   |
 +--------------------+-------+----------------------------------------+
-| clk                | in    | 外部时钟输入                           |
+| clk                | in    | External clock input                   |
 +--------------------+-------+----------------------------------------+
-| i_hs               | in    | 行同步信号                             |
+| i_hs               | in    | Horizontal sync signal                 |
 +--------------------+-------+----------------------------------------+
-| i_vs               | in    | 场同步信号                             |
+| i_vs               | in    | Vertical sync signal                   |
 +--------------------+-------+----------------------------------------+
-| i_de               | in    | 数据有效信号                           |
+| i_de               | in    | Data valid signal                      |
 +--------------------+-------+----------------------------------------+
-| i_data             | in    | color_bar数据                          |
+| i_data             | in    | color_bar data                         |
 +--------------------+-------+----------------------------------------+
-| o_hs               | out   | 输出行同步信号                         |
+| o_hs               | out   | Output horizontal sync signal          |
 +--------------------+-------+----------------------------------------+
-| o_vs               | out   | 输出场同步信号                         |
+| o_vs               | out   | Output vertical sync signal            |
 +--------------------+-------+----------------------------------------+
-| o_de               | out   | 输出数据有效信号                       |
+| o_de               | out   | Output data valid signal               |
 +--------------------+-------+----------------------------------------+
-| o_data             | out   | 输出数据                               |
+| o_data             | out   | Output data                            |
 +--------------------+-------+----------------------------------------+
-| x                  | out   | 生成X坐标                              |
+| x                  | out   | Generated X coordinate                 |
 +--------------------+-------+----------------------------------------+
-| y                  | out   | 生成Y坐标                              |
+| y                  | out   | Generated Y coordinate                 |
 +--------------------+-------+----------------------------------------+
 
-timing_gen_xy模块端口
+timing_gen_xy module ports
 
-1. 下面介绍如何存储文字信息的ROM IP，首先需要生成能够被XILINX FPGA识别的.coe文件。
+1. The following introduces the ROM IP for storing character information. First, you need to generate a .coe file that can be recognized by XILINX FPGA.
 
-首先在工程文件夹下找到“FPGA字模提取”工具。
+First, locate the "FPGA Font Extraction" tool in the project folder.
 
 .. image:: images/18_media/image3.png
       
-双击.exe文件打开工具
+Double-click the .exe file to open the tool.
 
    .. image:: images/18_media/image4.png
             
-在提取工具的“字符输入”框中输入需要显示的字符，字体和字符高度可以自定义选择。设置完成后点击“转换”按钮，在界面左下角可以看到转换后的字符点阵大小，点阵的宽和高在程序中是需要用到的
+In the "Character Input" box of the extraction tool, enter the characters to be displayed. The font and character height can be customized. After setting up, click the "Convert" button. In the lower-left corner of the interface, you can see the converted character dot matrix size. The width and height of the dot matrix are needed in the program.
 
    .. image:: images/18_media/image5.png
             
-点阵的宽和高这里位144x32,需要跟osd_display程序中定义的一致：
+The width and height of the dot matrix here are 144x32, which need to match the definitions in the osd_display program:
 
    .. image:: images/18_media/image6.png
             
-点击“保存”按钮，将文件保存到本例程源文件目录下，需要注意的是在保存类型下应该选择Xilinx（\*.coe）,点击“保存”按钮。
+Click the "Save" button to save the file to the source file directory of this routine. Note that in the save type dropdown, you should select Xilinx (\*.coe), then click the "Save" button.
 
 .. image:: images/18_media/image7.png
       
-回到字符提取工具界面出现如下对话框表示保存完成，点击确定，退出即可
+Return to the character extraction tool interface. The following dialog box indicates that saving is complete. Click OK to exit.
 
 .. image:: images/18_media/image8.png
       
-找到生成的.coe文件打开后可以看到如下：
+Locate and open the generated .coe file, and you can see the following:
 
 .. image:: images/18_media/image9.png
       
-调用单端口Rom IP核的过程在前面ROM的使用中已经介绍过，设置为Single Port
+The process of instantiating the single-port ROM IP core has been introduced in the previous ROM usage section. Set it to Single Port
 ROM
 
 .. image:: images/18_media/image10.png
       
-在PortA Options栏中设置如下：
+In the PortA Options tab, configure as follows:
 
 .. image:: images/18_media/image11.png
       
-按如下图添加osd.coe文件（找到前面生成的coe文件），完成后点击“OK”按钮：
+Add the osd.coe file as shown below (locate the previously generated coe file), then click the "OK" button when done:
 
 .. image:: images/18_media/image12.png
       
-4. osd_display模块包含timing_gen_xy 模块和osd_rom模块。osd_rom里存储的字符数据，如果数据为1，OSD的区域显示ROM中的前景红色（显示ALINX芯驿），如果数据是0，OSD的区域显示数据为背景色（彩条）。
+4. The osd_display module contains the timing_gen_xy module and the osd_rom module. The osd_rom stores character data. If the data is 1, the OSD area displays the foreground color red from the ROM (displaying the ALINX logo). If the data is 0, the OSD area displays the background color (color bars).
 
 .. image:: images/18_media/image13.png
       
-设置区域有效信号，也就是字符显示在此区域中，起始坐标设置成（9，9），区域大小可以根据字符生成工具设置的区域设置。
+Set the area valid signal, which defines the area where characters are displayed. The starting coordinates are set to (9, 9), and the area size can be configured based on the area settings of the character generation tool.
 
 .. image:: images/18_media/image14.png
       
-在ROM的读地址部分可能很多人不理解，为什么是[15:3]，也就是八个时钟周期才读出一个数据，这是因为字符的一个点只表示1bit，而ROM的存储数据宽度是8位，因此需要八个周期取出一个数据，并比较每个bit位的值，将字符一个点转换成图像上的一个像素。
+Many people may not understand the ROM read address part — why it is [15:3], meaning one data word is read out every eight clock cycles. This is because one dot of a character represents only 1 bit, while the ROM storage data width is 8 bits. Therefore, eight cycles are needed to extract one data word, and each bit value is compared to convert one character dot into one pixel on the image.
 
 .. image:: images/18_media/image15.png
       
 +--------------------+-------+----------------------------------------+
-| 信号名称           | 方向  | 说明                                   |
+| Signal Name        | Dir   | Description                            |
 +====================+=======+========================================+
-| rst_n              | in    | 异步复位输入,低复位                    |
+| rst_n              | in    | Asynchronous reset input, active low   |
 +--------------------+-------+----------------------------------------+
-| pclk               | in    | 外部时钟输入                           |
+| pclk               | in    | External clock input                   |
 +--------------------+-------+----------------------------------------+
-| i_hs               | in    | 行同步信号                             |
+| i_hs               | in    | Horizontal sync signal                 |
 +--------------------+-------+----------------------------------------+
-| i_vs               | in    | 场同步信号                             |
+| i_vs               | in    | Vertical sync signal                   |
 +--------------------+-------+----------------------------------------+
-| i_de               | in    | 数据有效信号                           |
+| i_de               | in    | Data valid signal                      |
 +--------------------+-------+----------------------------------------+
-| i_data             | in    | color_bar数据                          |
+| i_data             | in    | color_bar data                         |
 +--------------------+-------+----------------------------------------+
-| o_hs               | out   | 输出行同步信号                         |
+| o_hs               | out   | Output horizontal sync signal          |
 +--------------------+-------+----------------------------------------+
-| o_vs               | out   | 输出场同步信号                         |
+| o_vs               | out   | Output vertical sync signal            |
 +--------------------+-------+----------------------------------------+
-| o_de               | out   | 输出数据有效信号                       |
+| o_de               | out   | Output data valid signal               |
 +--------------------+-------+----------------------------------------+
-| o_data             | out   | 输出数据                               |
+| o_data             | out   | Output data                            |
 +--------------------+-------+----------------------------------------+
 
-osd_display模块端口
+osd_display module ports
 
-实验现象
---------
+Experiment Results
+-------------------
 
-连接好开发板和显示器，连接方式参考《HDMI输出实验》教程，需要注意，开发板的各个连接器不要带电热插拔，下载好实验程序，可以看到显示器显示以彩条为背景的字符。开发板作为HDMI输出设备，只能通过HDMI显示设备来显示，不要试图通过笔记本电脑的HDMI接口来显示，因为笔记本也是输出设备。
+Connect the development board and the monitor. Refer to the "HDMI Output Experiment" tutorial for the connection method. Please note that connectors on the development board should not be hot-plugged while powered on. After downloading the experiment program, you can see characters displayed on the monitor with a color bar background. The development board serves as an HDMI output device and can only display through an HDMI display device. Do not attempt to display through a laptop's HDMI port, as laptops are also output devices.
 
 .. image:: images/18_media/image16.png
       
-AX7020/AX7010硬件连接图
+AX7020/AX7010 Hardware Connection Diagram
 
 .. image:: images/18_media/image17.png
       
-默认字符显示的位置在坐标为（9，9），另外用户可以修改下面的pos_y和pos_x的判断条件将字符显示在显示屏的任意位置：
+The default character display position is at coordinates (9, 9). Users can also modify the pos_y and pos_x conditions below to display characters at any position on the screen:
 
 .. image:: images/18_media/image18.png
       
