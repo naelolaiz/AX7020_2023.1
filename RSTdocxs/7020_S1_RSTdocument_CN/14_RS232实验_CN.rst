@@ -1,293 +1,294 @@
-RS232实验
-===========
+RS232 Experiment
+================
 
-**实验Vivado工程为“rs232_test”。**
+**The Vivado project for this experiment is "rs232_test".**
 
-本章采用AN3485模块的RS232电路实现UART数据传输。
+This chapter uses the RS232 circuit of the AN3485 module to implement UART data transmission.
 
-模块介绍
---------
+Module Introduction
+-------------------
 
-黑金AN3845模块专门为工业现场应用设计的RS232/485/422通信模块。它包含一路RS232接口，2路RS485和2路RS422通信接口。配合开发板实现RS232、485和422的数据远程传输和通信。RS232、485和422接口分别采用MAX3232、MAX3485和MAX3490芯片作为电平转换芯片。模块留有一个40针的排母用于连接开发板，RS232接口为一个标准的DB9串口公座，通过串口线直接连接电脑或者其他设备；
-RS485和RS422接口采用接线端子跟外部连接，超远距离传输可达上千米，另外RS485和RS422接口部分带有正负15KV的ESD防护功能。
+The ALINX AN3845 module is an RS232/485/422 communication module specifically designed for industrial field applications. It includes one RS232 interface, two RS485 interfaces, and two RS422 communication interfaces. Together with the development board, it enables remote data transmission and communication via RS232, 485, and 422. The RS232, 485, and 422 interfaces use the MAX3232, MAX3485, and MAX3490 chips respectively as level conversion chips. The module has a 40-pin female header for connecting to the development board. The RS232 interface is a standard DB9 male serial port connector that connects directly to a computer or other devices via a serial cable;
+the RS485 and RS422 interfaces use terminal blocks for external connections, supporting ultra-long-distance transmission up to thousands of meters. Additionally, the RS485 and RS422 interface sections feature ±15KV ESD protection.
 
-AN3845模块实物照片如下：
+The photo of the AN3845 module is shown below:
 
 .. image:: images/14_media/image1.png
       
-AN3845通信模块正面图
+AN3845 Communication Module Front View
 
-模块参数说明
-~~~~~~~~~~~~
+Module Parameter Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-以下为AN3485通信模块的详细参数:
+The following are the detailed parameters of the AN3485 communication module:
 
--  **RS232接口**
+-  **RS232 Interface**
 
-   -  一路标准的DB9公座串行接口；
+   -  One standard DB9 male serial interface;
 
-   -  使用MAX3232作为RS232和 TTL电平的转换；
+   -  Uses MAX3232 for RS232 and TTL level conversion;
 
-   -  传输率高达120Kbps数据通讯速率
+   -  Data communication rate up to 120Kbps
 
--  **RS485接口**
+-  **RS485 Interface**
 
-   -  两路RS485接口，采用3线的接线端子；
+   -  Two RS485 interfaces, using 3-wire terminal blocks;
 
-   -  使用MAX3485作为RS485和TTL的电平转换;
+   -  Uses MAX3485 for RS485 and TTL level conversion;
 
-   -  工业级设计，抗干扰能力超强，同时采用有效的防雷设计;
+   -  Industrial-grade design with extremely strong anti-interference capability, along with effective lightning protection design;
 
-   -  具有120欧匹配电阻，插上跳线帽即可使能匹配电阻，长距离传输时建议短接。
+   -  Equipped with a 120-ohm matching resistor, which can be enabled by installing a jumper cap; shorting is recommended for long-distance transmission.
 
-   -  支持多机通讯，允许接在最多128个设备的总线上
+   -  Supports multi-device communication, allowing connection to a bus with up to 128 devices
 
-   -  传输率高达500Kbps数据通讯速率。
+   -  Data communication rate up to 500Kbps.
 
--  **RS422接口**
+-  **RS422 Interface**
 
-   -  两路RS422接口，采用5线的接线端子；
+   -  Two RS422 interfaces, using 5-wire terminal blocks;
 
-   -  使用MAX3490作为RS422和TTL的电平转换;
+   -  Uses MAX3490 for RS422 and TTL level conversion;
 
-   -  工业级设计，抗干扰能力超强，同时采用有效的防雷设计;
+   -  Industrial-grade design with extremely strong anti-interference capability, along with effective lightning protection design;
 
-   -  具有120欧匹配电阻，插上跳线帽即可使能匹配电阻，长距离传输时建议短接。
+   -  Equipped with a 120-ohm matching resistor, which can be enabled by installing a jumper cap; shorting is recommended for long-distance transmission.
 
-   -  支持多机通讯，允许接在最多128个设备的总线上
+   -  Supports multi-device communication, allowing connection to a bus with up to 128 devices
 
-   -  传输率高达500Kbps数据通讯速率。
+   -  Data communication rate up to 500Kbps.
 
-模块功能说明
-~~~~~~~~~~~~
+Module Function Description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-AN3485模块的RS232接口采用MAX3232芯片实现RS232和+3.3V TTL电平的转换。TTL电平的串口接收和发送信号（RXD,TXD）连接到40针的连接器上跟外面的FPGA芯片或者ARM芯片实现串口通信。RS232串口通信的最高速度为120kbps，RS232接口的原理设计图如下图所示。
+The RS232 interface of the AN3485 module uses the MAX3232 chip to convert between RS232 and +3.3V TTL levels. The TTL-level serial receive and transmit signals (RXD, TXD) are connected to the 40-pin connector for serial communication with an external FPGA chip or ARM chip. The maximum RS232 serial communication speed is 120kbps. The schematic design of the RS232 interface is shown in the figure below.
 
 .. image:: images/14_media/image2.png
       
-程序设计
---------
+Program Design
+--------------
 
-本文所述的串口指异步串行通信，异步串行是指UART（Universal Asynchronous Receiver/Transmitter），通用异步接收/发送。本实验程序设计为每秒钟向串口发送”
-HELLO ALINX”，如果收到RXD接收的数据，再把接收的数据发送出去，实现回环的功能。
+The serial port described in this document refers to asynchronous serial communication, which is UART (Universal Asynchronous Receiver/Transmitter). The program in this experiment is designed to send "HELLO ALINX" to the serial port every second. If data is received on the RXD line, the received data is sent back out, implementing a loopback function.
 
 .. image:: images/14_media/image3.png
 
-异步串口通信协议
-~~~~~~~~~~~~~~~~
+Asynchronous Serial Communication Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-消息帧从一个低位起始位开始，后面是7个或8个数据位，一个可用的奇偶位和一个或几个高位停止位。接收器发现开始位时它就知道数据准备发送，并尝试与发送器时钟频率同步。如果选择了奇偶校验，UART就在数据位后面加上奇偶位。奇偶位可用来帮助错误校验。在接收过程中，UART从消息帧中去掉起始位和结束位，对进来的字节进行奇偶校验，并将数据字节从串行转换成并行。UART
-传输时序如下图所示：
+A message frame starts with a low start bit, followed by 7 or 8 data bits, an optional parity bit, and one or more high stop bits. When the receiver detects the start bit, it knows that data is ready to be transmitted and attempts to synchronize with the transmitter's clock frequency. If parity checking is selected, the UART appends a parity bit after the data bits. The parity bit can be used to help with error checking. During reception, the UART removes the start and stop bits from the message frame, performs parity checking on the incoming bytes, and converts the data bytes from serial to parallel. The UART
+transmission timing is shown in the figure below:
 
 .. image:: images/14_media/image4.png
       
-从波形上可以看出起始位是低电平，停止位和空闲位都是高电平，也就是说没有数据传输时是高电平，利用这个特点我们可以准确接收数据，当一个下降沿事件发生时，我们认为将进行一次数据传输。
+From the waveform, it can be seen that the start bit is low level, while the stop bit and idle state are both high level. In other words, the line is high when no data is being transmitted. Using this characteristic, we can accurately receive data — when a falling edge event occurs, we consider it the beginning of a data transmission.
 
-波特率
-~~~~~~
+Baud Rate
+~~~~~~~~~
 
-常见的串口通信波特率有2400 、9600、115200等，发送和接收波特率必须保持一致才能正确通信。波特率是指1秒最大传输的数据位数，包括起始位、数据位、校验位、停止位。假如通信波特率设定为9600，那么一个数据位的时间长度是1/9600秒，本实验中的波特率由50MHz时钟产生。
+Common serial communication baud rates include 2400, 9600, 115200, etc. The transmit and receive baud rates must be consistent for correct communication. The baud rate refers to the maximum number of data bits transmitted per second, including start bits, data bits, parity bits, and stop bits. If the communication baud rate is set to 9600, the duration of one data bit is 1/9600 seconds. In this experiment, the baud rate is generated from a 50MHz clock.
 
-接收模块设计
-~~~~~~~~~~~~
+Receive Module Design
+~~~~~~~~~~~~~~~~~~~~~
 
-串口接收模块uart_rx是个参数化可配置模块，参数“CLK_FRE”定义接收模块的系统时钟频率，单位是Mhz，参数“BAUD_RATE”是波特率。接收状态机状态转换图如下：
+The serial receive module uart_rx is a parameterized configurable module. The parameter "CLK_FRE" defines the system clock frequency of the receive module in MHz, and the parameter "BAUD_RATE" is the baud rate. The receive state machine state transition diagram is as follows:
 
 .. image:: images/14_media/image5.png
       
-“S_IDLE”状态为空闲状态，上电后进入“S_IDLE”，如果信号“rx_pin”有下降沿，我们认为是串口的起始位，进入状态“S_START”,等一个BIT时间起始位结束后进入数据位接收状态“S_REC_BYTE”,本实验中数据位设计是8位，接收完成以后进入“S_STOP”状态，在“S_STOP”没有等待一个BIT周期，\ **只等待了半个BIT时间**\ ，这是因为如果等待了一个周期，有可能会错过下一个数据的起始位判断，最后进入“S_DATA”状态，将接收到的数据送到其他模块。在这个模块我们提一点：为了满足采样定理，在接受数据时每个数据都在波特率计数器的时间中点进行采样，以避免数据出错的情况：
+The "S_IDLE" state is the idle state. After power-on, it enters "S_IDLE". If the signal "rx_pin" has a falling edge, it is considered the start bit of the serial data, and the state transitions to "S_START". After waiting one BIT period for the start bit to end, it enters the data bit receiving state "S_REC_BYTE". In this experiment, the data width is designed as 8 bits. After reception is complete, it enters the "S_STOP" state. In "S_STOP", it does not wait for a full BIT period — \ **it only waits for half a BIT period**\ . This is because waiting a full period might cause missing the start bit detection of the next data frame. Finally, it enters the "S_DATA" state, where the received data is sent to other modules. One important point about this module: to satisfy the sampling theorem, each data bit is sampled at the midpoint of the baud rate counter period during data reception, to avoid data errors:
 
 .. code:: verilog
 
  //receive serial data bit data
  always@(posedge clk or negedge rst_n)
  begin
- 	if(rst_n == 1'b0)
- 		rx_bits <= 8'd0;
- 	else if(state == S_REC_BYTE && cycle_cnt == CYCLE/2 - 1)
- 		rx_bits[bit_cnt] <= rx_pin;
- 	else
- 		rx_bits <= rx_bits; 
+ if(rst_n == 1'b0)
+ rx_bits <= 8'd0;
+ else if(state == S_REC_BYTE && cycle_cnt == CYCLE/2 - 1)
+ rx_bits[bit_cnt] <= rx_pin;
+ else
+ rx_bits <= rx_bits; 
  end
 
-注意：\ **本实验没有设计奇偶校验位**\ 。
+Note:\ **This experiment does not include parity bit design**\ .
 
 +-------------------+-----+--------+------------------------------------------------+
-| 信号名称          | 方向| 宽度   | 说明                                           |
+| Signal Name       | Dir | Width  | Description                                    |
 |                   |     | (bit)  |                                                |
 |                   |     |        |                                                |
 |                   |     |        |                                                |
 +===================+=====+========+================================================+
-| clk               | i   | 1      | 系统时钟                                       |
+| clk               | i   | 1      | System clock                                   |
 |                   | n   |        |                                                |
 +-------------------+-----+--------+------------------------------------------------+
-| rst_n             | i   | 1      | 异步复位，低电平复位                           |
+| rst_n             | i   | 1      | Asynchronous reset, active low                 |
 |                   | n   |        |                                                |
 +-------------------+-----+--------+------------------------------------------------+
-| rx_data           | o   | 8      | 接收到的串口数据（8位数据）                    |
+| rx_data           | o   | 8      | Received serial data (8-bit data)              |
 |                   | u   |        |                                                |
 |                   | t   |        |                                                |
 +-------------------+-----+--------+------------------------------------------------+
-| rx_data_valid     | o   | 1      | 接收到的串口数据有效（高有效）                 |
+| rx_data_valid     | o   | 1      | Received serial data valid (active high)       |
 |                   | u   |        |                                                |
 |                   | t   |        |                                                |
 +-------------------+-----+--------+------------------------------------------------+
-| rx_data_ready     | i   | 1      | 表示用户可以从接收模块接收数据，               |
-|                   | n   |        | 当rx_data_ready和rx_data_valid都为高时数据送出 |
+| rx_data_ready     | i   | 1      | Indicates user can receive data from the       |
+|                   | n   |        | receive module; data is sent when both         |
+|                   |     |        | rx_data_ready and rx_data_valid are high       |
 +-------------------+-----+--------+------------------------------------------------+
-| rx_pin            | i   | 1      | 串口接收数据输入                               |
+| rx_pin            | i   | 1      | Serial receive data input                      |
 |                   | n   |        |                                                |
 +-------------------+-----+--------+------------------------------------------------+
 
-**串口接收模块uart_rx端口**
+**Serial receive module uart_rx ports**
 
-发送模块设计
-~~~~~~~~~~~~
+Transmit Module Design
+~~~~~~~~~~~~~~~~~~~~~~
 
-发送模块uart_tx设计和接收模块相似，也是使用状态机，状态转换图如下：
+The transmit module uart_tx design is similar to the receive module, also using a state machine. The state transition diagram is as follows:
 
 .. image:: images/14_media/image6.png
       
-上电后进入“S_IDLE”空闲状态，如果有发送请求，进入发送起始位状态“S_START”,起始位发送完成后进入发送数据位状态“S_SEND_BYTE”,数据位发送完成后进入发送停止位状态“S_STOP”,停止位发送完成后又进入空闲状态。在数据发送模块中，从顶层模块写入的数据直接传递给寄存器‘tx_reg’，并通过‘tx_reg’寄存器模拟串口传输协议在状态机的条件转换下进行数据传送：
+After power-on, it enters the "S_IDLE" idle state. If there is a transmit request, it enters the start bit transmission state "S_START". After the start bit is sent, it enters the data bit transmission state "S_SEND_BYTE". After the data bits are sent, it enters the stop bit transmission state "S_STOP". After the stop bit is sent, it returns to the idle state. In the data transmit module, data written from the top-level module is directly passed to the register 'tx_reg', and the 'tx_reg' register simulates the serial transmission protocol under the state machine's conditional transitions for data transmission:
 
 .. code:: verilog
 
  always@(posedge clk or negedge rst_n)
  begin
- 	if(rst_n == 1'b0)
- 		tx_reg <= 1'b1;
- 	else
- 		case(state)
- 			S_IDLE,S_STOP:
- 				tx_reg <= 1'b1; 
- 			S_START:
- 				tx_reg <= 1'b0; 
- 			S_SEND_BYTE:
- 				tx_reg <= tx_data_latch[bit_cnt];
- 			default:
- 				tx_reg <= 1'b1; 
- 		endcase
+ if(rst_n == 1'b0)
+ tx_reg <= 1'b1;
+ else
+ case(state)
+ S_IDLE,S_STOP:
+ tx_reg <= 1'b1; 
+ S_START:
+ tx_reg <= 1'b0; 
+ S_SEND_BYTE:
+ tx_reg <= tx_data_latch[bit_cnt];
+ default:
+ tx_reg <= 1'b1; 
+ endcase
  end
 
 +----------------+-----+-------+-----------------------------------------------------+
-| 信号           | 方向| 宽度  | 说明                                                |
-| 名称           |     | (bit) |                                                     |
+| Signal         | Dir | Width | Description                                         |
+| Name           |     | (bit) |                                                     |
 +================+=====+=======+=====================================================+
-| clk            | i   | 1     | 系统时钟                                            |
+| clk            | i   | 1     | System clock                                        |
 |                | n   |       |                                                     |
 +----------------+-----+-------+-----------------------------------------------------+
-| rst_n          | i   | 1     | 异步复位，低电平复位                                |
+| rst_n          | i   | 1     | Asynchronous reset, active low                      |
 |                | n   |       |                                                     |
 +----------------+-----+-------+-----------------------------------------------------+
-| tx_data        | i   | 8     | 要发送的串口数据(8位数据）                          |
+| tx_data        | i   | 8     | Serial data to be transmitted (8-bit data)          |
 |                | n   |       |                                                     |
 +----------------+-----+-------+-----------------------------------------------------+
-| tx_data_valid  | i   | 1     | 发送的串口数据有效（高有效）                        |
+| tx_data_valid  | i   | 1     | Transmit serial data valid (active high)            |
 |                | n   |       |                                                     |
 +----------------+-----+-------+-----------------------------------------------------+
-| tx_data_ready  | o   | 1     | 发送模块已准备好发送数                              |
-|                | u   |       | 据，用户可将tx_data_valid信号拉高发送数据给发送模块 |
-|                | t   |       | 。当tx_data_ready和tx_data_valid都为高时数据被发送  |
+| tx_data_ready  | o   | 1     | Transmit module is ready to send data;              |
+|                | u   |       | user can assert tx_data_valid to send data to the   |
+|                | t   |       | transmit module. Data is sent when both             |
+|                |     |       | tx_data_ready and tx_data_valid are high            |
 +----------------+-----+-------+-----------------------------------------------------+
-| tx_pin         | o   | 1     | 串口发送数据发送                                    |
+| tx_pin         | o   | 1     | Serial transmit data output                         |
 |                | u   |       |                                                     |
 |                | t   |       |                                                     |
 +----------------+-----+-------+-----------------------------------------------------+
 
-**串口发送模块uart_tx端口**
+**Serial transmit module uart_tx ports**
 
-波特率的产生
-~~~~~~~~~~~~
+Baud Rate Generation
+~~~~~~~~~~~~~~~~~~~~
 
-在发送和接收模块中，声明了参数CYCLE，也就是UART一个周期的计数值，当然计数是在50MHz时钟下进行的。用户只要设定好CLK_FRE和BAUD_RATE这两个参数即可。
+In the transmit and receive modules, the parameter CYCLE is declared, which is the count value for one UART cycle. The counting is performed under the 50MHz clock. Users only need to set the CLK_FRE and BAUD_RATE parameters.
 
 .. image:: images/14_media/image7.png
       
-测试程序
-~~~~~~~~
+Test Program
+~~~~~~~~~~~~
 
-测试程序设计FPGA为1秒向串口发送一次“HELLO
-ALINX\\r\\n”,不发送期间，如果接受到串口数据，直接把接收到的数据送到发送模块再返回。“\\r\\n”,在这里和C语言中表示一致，都是回车换行。
+The test program is designed so that the FPGA sends "HELLO
+ALINX\\r\\n" to the serial port once per second. During non-transmitting periods, if serial data is received, the received data is directly sent to the transmit module and returned. "\\r\\n" here has the same meaning as in C language, representing carriage return and line feed.
 
-测试程序分别例化了发送模块和接收模块，同时将参数传递进去，波特率设置为115200。
+The test program instantiates both the transmit module and the receive module, passing the parameters in, with the baud rate set to 115200.
 
 .. code:: verilog
 
  always@(posedge sys_clk or negedge rst_n)
  begin
- 	if(rst_n == 1'b0)
- 	begin
- 		wait_cnt <= 32'd0;
- 		tx_data <= 8'd0;
- 		state <= IDLE;
- 		tx_cnt <= 8'd0;
- 		tx_data_valid <= 1'b0;
- 	end
- 	else
- 	case(state)
- 		IDLE:
- 			state <= SEND;
- 		SEND:
- 		begin
- 			wait_cnt <= 32'd0;
- 			tx_data <= tx_str;
+ if(rst_n == 1'b0)
+ begin
+ wait_cnt <= 32'd0;
+ tx_data <= 8'd0;
+ state <= IDLE;
+ tx_cnt <= 8'd0;
+ tx_data_valid <= 1'b0;
+ end
+ else
+ case(state)
+ IDLE:
+ state <= SEND;
+ SEND:
+ begin
+ wait_cnt <= 32'd0;
+ tx_data <= tx_str;
  
- 			if(tx_data_valid == 1'b1 && tx_data_ready == 1'b1 && tx_cnt < 8'd12)//Send 12 bytes data
- 			begin
- 				tx_cnt <= tx_cnt + 8'd1; //Send data counter
- 			end
- 			else if(tx_data_valid && tx_data_ready)//last byte sent is complete
- 			begin
- 				tx_cnt <= 8'd0;
- 				tx_data_valid <= 1'b0;
- 				state <= WAIT;
- 			end
- 			else if(~tx_data_valid)
- 			begin
- 				tx_data_valid <= 1'b1;
- 			end
- 		end
- 		WAIT:
- 		begin
- 			wait_cnt <= wait_cnt + 32'd1;
+ if(tx_data_valid == 1'b1 && tx_data_ready == 1'b1 && tx_cnt < 8'd12)//Send 12 bytes data
+ begin
+ tx_cnt <= tx_cnt + 8'd1; //Send data counter
+ end
+ else if(tx_data_valid && tx_data_ready)//last byte sent is complete
+ begin
+ tx_cnt <= 8'd0;
+ tx_data_valid <= 1'b0;
+ state <= WAIT;
+ end
+ else if(~tx_data_valid)
+ begin
+ tx_data_valid <= 1'b1;
+ end
+ end
+ WAIT:
+ begin
+ wait_cnt <= wait_cnt + 32'd1;
  
- 			if(rx_data_valid == 1'b1)
- 			begin
- 				tx_data_valid <= 1'b1;
- 				tx_data <= rx_data;   // send uart received data
- 			end
- 			else if(tx_data_valid && tx_data_ready)
- 			begin
- 				tx_data_valid <= 1'b0;
- 			end
- 			else if(wait_cnt >= CLK_FRE * 1000000) // wait for 1 second
- 				state <= SEND;
- 		end
- 		default:
- 			state <= IDLE;
- 	endcase
+ if(rx_data_valid == 1'b1)
+ begin
+ tx_data_valid <= 1'b1;
+ tx_data <= rx_data;   // send uart received data
+ end
+ else if(tx_data_valid && tx_data_ready)
+ begin
+ tx_data_valid <= 1'b0;
+ end
+ else if(wait_cnt >= CLK_FRE * 1000000) // wait for 1 second
+ state <= SEND;
+ end
+ default:
+ state <= IDLE;
+ endcase
  end
  
  //combinational logic
  //Send "HELLO ALINX\r\n"
  always@(*)
  begin
- 	case(tx_cnt)
- 		8'd0 :  tx_str <= "H";
- 		8'd1 :  tx_str <= "E";
- 		8'd2 :  tx_str <= "L";
- 		8'd3 :  tx_str <= "L";
- 		8'd4 :  tx_str <= "O";
- 		8'd5 :  tx_str <= " ";
- 		8'd6 :  tx_str <= "A";
- 		8'd7 :  tx_str <= "L";
- 		8'd8 :  tx_str <= "I";
- 		8'd9 :  tx_str <= "N";
- 		8'd10:  tx_str <= "X";
- 		8'd11:  tx_str <= "\r";
- 		8'd12:  tx_str <= "\n";
- 		default:tx_str <= 8'd0;
- 	endcase
+ case(tx_cnt)
+ 8'd0 :  tx_str <= "H";
+ 8'd1 :  tx_str <= "E";
+ 8'd2 :  tx_str <= "L";
+ 8'd3 :  tx_str <= "L";
+ 8'd4 :  tx_str <= "O";
+ 8'd5 :  tx_str <= " ";
+ 8'd6 :  tx_str <= "A";
+ 8'd7 :  tx_str <= "L";
+ 8'd8 :  tx_str <= "I";
+ 8'd9 :  tx_str <= "N";
+ 8'd10:  tx_str <= "X";
+ 8'd11:  tx_str <= "\r";
+ 8'd12:  tx_str <= "\n";
+ default:tx_str <= 8'd0;
+ endcase
  end
  uart_rx#
  (
@@ -317,33 +318,33 @@ ALINX\\r\\n”,不发送期间，如果接受到串口数据，直接把接收�
      .tx_pin                     (uart_tx                  )
  );
 
-仿真
-----
+Simulation
+----------
 
-这里我们添加了一个串口接收的激励程序vtf_uart_test.v文件，用来仿真uart串口接收。这里向串口模块的uart_rx发送0xa3的数据,每位的数据按115200的波特率发送，1位起始位，8位数据位和1位停止位。
+Here we added a serial port receive stimulus program file vtf_uart_test.v for simulating UART serial port reception. It sends 0xa3 data to the uart_rx of the serial module, with each bit sent at a baud rate of 115200, consisting of 1 start bit, 8 data bits, and 1 stop bit.
 
 .. image:: images/14_media/image8.png
       
-仿真的结果如下，当程序接收到8位数据的时候，rx_data_valid有效，rx_data[7:0]的数据位a3。
+The simulation results are as follows. When the program receives 8 bits of data, rx_data_valid becomes active, and the rx_data[7:0] data is a3.
 
 .. image:: images/14_media/image9.png
       
-实验测试
---------
+Experiment Test
+---------------
 
-将AN3485模块插到J11扩展口上，这里使用了USB转RS232/RS485/RS422的设备，由于很多电脑都没有9针的串行接口，我们通过串口线与USB转串口设备连接，再通过USB连接到电脑上。如果电脑有串口的话，可以直接连接串口。
+Insert the AN3485 module into the J11 expansion port. Here we use a USB to RS232/RS485/RS422 converter device. Since many computers do not have a 9-pin serial port, we connect through a serial cable to a USB-to-serial converter device, and then connect to the computer via USB. If the computer has a serial port, it can be connected directly.
 
 .. image:: images/14_media/image10.png
       
-在设备管理器中找到串口号”COM5”
+Find the serial port number "COM5" in the Device Manager.
 
 .. image:: images/14_media/image11.png
       
-打开串口调试，端口选择“COM5”（根据自己情况选择），波特率设置115200，检验位选None，数据位选8，停止位选1，然后点击“打开串口”。此软件在例程文件夹下。
+Open the serial port debugger, select port "COM5" (choose according to your own situation), set the baud rate to 115200, select None for parity, 8 for data bits, and 1 for stop bits, then click "Open Serial Port". This software is included in the example project folder.
 
 .. image:: images/14_media/image12.png
       
-打开串口以后，每秒可收到“HELLO ALINX”，在发送区输入框输入要发送的文字，点击“手动发送”，可以看到接收到自己发送的字符。
+After opening the serial port, you will receive "HELLO ALINX" every second. Enter the text you want to send in the send area input box, click "Manual Send", and you can see the characters you sent being received back.
 
 .. image:: images/14_media/image13.png
       
