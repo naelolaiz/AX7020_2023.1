@@ -1,206 +1,206 @@
-DMA环通测试
-=============
+DMA Loopback Test
+==================
 
-**实验Vivado工程为“dma_loopback”。**
+**The Vivado project for this experiment is "dma_loopback".**
 
-本章介绍一个重要的功能模块，DMA（Direct Memory
-Access，直接内存存取），是指外部设备不通过CPU直接与系统内存交换数据的接口技术。要将外设数据读入内存或将内存传送到外设，一般都要通过CPU控制完成，如采用查询或中断方式。如前面讲到的BRAM实验。
+This chapter introduces an important functional module, DMA (Direct Memory
+Access), which is an interface technology that allows external devices to exchange data directly with system memory without going through the CPU. To read peripheral data into memory or transfer memory data to peripherals, it is generally done through CPU control, such as polling or interrupt methods, as in the BRAM experiment discussed earlier.
 
-虽然中断方式可以提高CPU的利用率，但是也会有效率问题，对于批量传送数据的情况，采用DMA方式，可解决效率与速度问题，CPU只需要提供地址和长度给DMA，DMA即可接管总线，访问内存，等DMA完成工作后，告知CPU，交出总线控制权。
+Although the interrupt method can improve CPU utilization, there are still efficiency issues. For bulk data transfers, using DMA can solve efficiency and speed problems. The CPU only needs to provide the address and length to the DMA, and the DMA can then take over the bus to access memory. After the DMA completes its work, it notifies the CPU and relinquishes bus control.
 
-本章中采用Vitis给的DMA例子，稍做修改，在DMA工作结束后，发出结束中断，告知CPU，使CPU读取内存数据。
+In this chapter, we use the DMA example provided by Vitis with slight modifications. After the DMA finishes its work, it issues a completion interrupt to notify the CPU, allowing the CPU to read memory data.
 
 .. image:: images/15_media/image1.png
       
-实验说明
---------
+Experiment Description
+----------------------
 
-参考DMA文档PG021
+Refer to DMA document PG021
 
-1. 先来认识下AXI DMA模块，此模块用到了三种总线，AXI4-Lite用于对寄存器进行配置，AXI4 Memory Map用于与内存交互，在此模块中又分立出了AXI4 Memory Map Read和AXI4 Memory Map Write两个接口，又分别叫做M_AXI_MM2S和M_AXI_S2MM，一个是读一个是写，这里要搞清楚，不能混淆。AXI4 Stream接口用于对外设的读写，其中AXI4 Stream Master（MM2S）用于对外设写，AXI4-Stream Slave(S2MM)用于对外设读。另外还支持Scatter/Gather功能，但本实验不再讲述，留待用户研究。（MM2S表示Memory Map to Stream，S2MM表示Stream to Memory Map）。
+1. Let's first understand the AXI DMA module. This module uses three types of buses: AXI4-Lite is used for register configuration, AXI4 Memory Map is used for memory interaction. Within this module, there are two separate interfaces: AXI4 Memory Map Read and AXI4 Memory Map Write, also called M_AXI_MM2S and M_AXI_S2MM respectively - one for reading and one for writing. It is important to understand and not confuse these. The AXI4 Stream interface is used for reading and writing to peripherals, where AXI4 Stream Master (MM2S) is used for writing to peripherals, and AXI4-Stream Slave(S2MM) is used for reading from peripherals. It also supports Scatter/Gather functionality, but this experiment will not cover it, leaving it for users to explore. (MM2S stands for Memory Map to Stream, S2MM stands for Stream to Memory Map).
 
 ..
 
-   AXI Memory Map数据宽度支持32，64，128，256，512，1024bits
+   AXI Memory Map data width supports 32, 64, 128, 256, 512, 1024 bits
 
-   AXI Stream数据宽度支持8，16，32，64，128，256，512，1024bits
+   AXI Stream data width supports 8, 16, 32, 64, 128, 256, 512, 1024 bits
 
 .. image:: images/15_media/image2.png
       
-2. 本实验中采用直接寄存器模式，如下图为寄存器说明，主要分为两部分，一是MM2S，包括Control Register，Status Register，Source Address，Transfer Length四部分，二是S2MM，同样包括Control Register，Status Register，Destination Address，Buffer Length四部分，注意这里的Source Address和Destination Address指的是内存地址。
+2. This experiment uses direct register mode. The register description is shown in the figure below, mainly divided into two parts: one is MM2S, which includes Control Register, Status Register, Source Address, and Transfer Length; the other is S2MM, which similarly includes Control Register, Status Register, Destination Address, and Buffer Length. Note that Source Address and Destination Address here refer to memory addresses.
 
 .. image:: images/15_media/image3.png
       
 .. image:: images/15_media/image4.png
       
-1. 以下为MM2S_DMACR控制寄存器说明，比较重要的是Bit0，Run/Stop，表示开启或停止DMA。
+1. The following is the MM2S_DMACR control register description. The most important bit is Bit0, Run/Stop, which starts or stops the DMA.
 
-其他内容不再讲述。
+Other details will not be discussed here.
 
 .. image:: images/15_media/image5.png
       
 .. image:: images/15_media/image6.png
       
-在这里有几个中断可以设置，IOC_IrqEn，使能完成中断，Dly_IrqEn使能延迟中断，Err_IrqEn使能错误中断。
+There are several interrupts that can be configured here: IOC_IrqEn enables the completion interrupt, Dly_IrqEn enables the delay interrupt, and Err_IrqEn enables the error interrupt.
 
 .. image:: images/15_media/image7.png
       
-4. MM2S_DMASR为状态寄存器说明，bit12,13,14为中断状态，写1可清除中断。
+4. MM2S_DMASR is the status register description. Bits 12, 13, and 14 are interrupt status bits, and writing 1 clears the interrupt.
 
 .. image:: images/15_media/image8.png
       
 .. image:: images/15_media/image9.png
       
-5. MM2S_DA，MM2S_LENGTH代表地址和长度设置，S2MM端的寄存器与MM2S类似，不再讲述，本实验功能是MM2S从DDR3中读取数据，写到AXI Stream Data FIFO，再从FIFO读出写到DDR3，实现环通测试，需要打开S2MM_DMACR的IOC_Irq，即写内存结束中断，功能框图如下所示：
+5. MM2S_DA and MM2S_LENGTH represent the address and length settings. The S2MM registers are similar to MM2S and will not be discussed further. The function of this experiment is for MM2S to read data from DDR3, write it to the AXI Stream Data FIFO, then read from the FIFO and write back to DDR3, implementing a loopback test. The IOC_Irq in S2MM_DMACR needs to be enabled, which is the write-to-memory completion interrupt. The functional block diagram is shown below:
 
 .. image:: images/15_media/image10.png
 
-硬件环境搭建
-------------
+Hardware Environment Setup
+--------------------------
 
-1. 以”ps_hello”工程为基础。实验中，需要用到HP接口，高速访问DDR3：
+1. Based on the "ps_hello" project. In this experiment, the HP interface is needed for high-speed DDR3 access:
 
 .. image:: images/15_media/image11.png
       
-设置如下：
+Configure as follows:
 
 .. image:: images/15_media/image12.png
       
-2. 打开PL-PS中断接口，连接DMA中断
+2. Enable the PL-PS interrupt interface to connect the DMA interrupt
 
 .. image:: images/15_media/image13.png
       
-3. 设置时钟100MHz，用于PL端AXI的时钟
+3. Set the clock to 100MHz for the PL-side AXI clock
 
 .. image:: images/15_media/image14.png
       
-4. 点击”+”，添加DMA模块。
+4. Click "+" to add the DMA module.
 
 .. image:: images/15_media/image15.png
       
-5. DMA设置如下，Width of Buffer Length Register指的是LENGTH寄存器的宽度，如23bits，也就是最大传输2^26= 67,108,864bytes，这里按默认设置14，打开读和写通道，不打开Allow Unaligned Transfers，如果不打开，Memory Map Data Width设置为32，那么地址就必须是0x0，0x4，0x8，0xC等，按4字节对齐。Max Busrt Size可以设置为2, 4, 8, 16, 32, 64, 128, 256。
+5. The DMA settings are as follows. Width of Buffer Length Register refers to the width of the LENGTH register. For example, 23 bits means a maximum transfer of 2^26 = 67,108,864 bytes. Here we use the default setting of 14. Enable both read and write channels, but do not enable Allow Unaligned Transfers. If not enabled and Memory Map Data Width is set to 32, then addresses must be 0x0, 0x4, 0x8, 0xC, etc., aligned to 4 bytes. Max Burst Size can be set to 2, 4, 8, 16, 32, 64, 128, 256.
 
 .. image:: images/15_media/image16.png
       
-1. AXI Stream Data FIFO设置如下，设置深度为1024，TDATA Width为4字节，也就是32位，打开TKEEP，TLAST信号
+1. The AXI Stream Data FIFO settings are as follows: set the depth to 1024, TDATA Width to 4 bytes (i.e., 32 bits), and enable the TKEEP and TLAST signals.
 
 .. image:: images/15_media/image17.png
       
-7. 自动连接
+7. Run automatic connection
 
 .. image:: images/15_media/image18.png
       
-继续自动连接
+Continue with automatic connection
 
 .. image:: images/15_media/image19.png
       
-8. 连接FIFO的S_AXIS和M_AXIS到dma（AXIS为AXI Stream的缩写），继续点击Run Connection Automation
+8. Connect the FIFO's S_AXIS and M_AXIS to the DMA (AXIS is short for AXI Stream), then continue to click Run Connection Automation
 
 .. image:: images/15_media/image20.png
       
-9. 添加Concat，连接MM2S和S2MM中断输出到IRQ_F2P
+9. Add Concat, and connect the MM2S and S2MM interrupt outputs to IRQ_F2P
 
 .. image:: images/15_media/image21.png
       
-10. 最终连线如下图所示
+10. The final connections are shown in the figure below
 
 .. image:: images/15_media/image22.png
       
-11. 选择fifo的S_AXI,M_AXI，count信号，右键选择Debug，添加ILA逻辑分析仪，观察数据变化。
+11. Select the FIFO's S_AXI, M_AXI, and count signals, right-click and select Debug to add an ILA logic analyzer for observing data changes.
 
 .. image:: images/15_media/image23.png
       
 .. image:: images/15_media/image24.png
       
-12. 自动连接后，打开ila配置
+12. After automatic connection, open the ILA configuration
 
 .. image:: images/15_media/image25.png
       
-将Number of Probes改为4，添加两个Probe接口
+Change Number of Probes to 4, adding two Probe interfaces
 
 .. image:: images/15_media/image26.png
       
-连接新添加的两个Probe到DMA的中断输出
+Connect the two newly added Probes to the DMA interrupt outputs
 
 .. image:: images/15_media/image27.png
       
-13. 保存设计，生成bitstream
+13. Save the design and generate the bitstream
 
 .. image:: images/15_media/image28.png
       
-Vitis程序开发
--------------
+Vitis Program Development
+-------------------------
 
-1. 本实验程序是根据simple_poll例子做的修改，在BSP里可以通过导入例子来学习模块的应用。
+1. The program for this experiment is a modification of the simple_poll example. You can learn about module usage by importing examples in the BSP.
 
 .. image:: images/15_media/image29.png
       
-2. 设置MAX_PKT_LEN，也就是长度，单位为字节，TEST_START_VALUE为起始的数据值，NUMBER_OF_TRANSFERS为测试次数。
+2. Set MAX_PKT_LEN, which is the length in bytes, TEST_START_VALUE as the starting data value, and NUMBER_OF_TRANSFERS as the number of test iterations.
 
 .. image:: images/15_media/image30.png
       
-3. 定义发送和接收数组
+3. Define the transmit and receive arrays
 
 .. image:: images/15_media/image31.png
       
-4. 在XAxiDma_Setup函数中，打开S2MM的IOC中断，关闭MM2S的所有中断。在S2MM接收完数据后会发出中断。
+4. In the XAxiDma_Setup function, enable the S2MM IOC interrupt and disable all MM2S interrupts. An interrupt will be issued after S2MM finishes receiving data.
 
 .. image:: images/15_media/image32.png
       
-5. 在XAxiDma_Setup函数，初始化TxBufferPtr之后，需要将Cache里的数据刷新到内存中，这里非常重要，由于DMA需要访问DDR3，而CPU与DDR3之间是通过Cache交互的，数据暂存在Cache里，可能没有真正刷新到DDR3，如果外部设备也就是DMA想要读取DDR3的值，必须将Cache里的数据刷新到DDR3中，这样DMA才能读到正确的值。调用Xil_DCacheFlushRang函数，需要给出内存地址和长度。
+5. In the XAxiDma_Setup function, after initializing TxBufferPtr, the data in the Cache needs to be flushed to memory. This is very important because the DMA needs to access DDR3, and the CPU interacts with DDR3 through the Cache. Data is temporarily stored in the Cache and may not have been actually flushed to DDR3. If an external device (i.e., the DMA) wants to read the DDR3 values, the Cache data must be flushed to DDR3 so that the DMA can read the correct values. Call the Xil_DCacheFlushRange function, providing the memory address and length.
 
 .. image:: images/15_media/image33.png
       
-6. 打开MM2S通路和S2MM通路。
+6. Enable the MM2S channel and S2MM channel.
 
 .. image:: images/15_media/image34.png
       
-7. 中断设置方法与前面例程一样
+7. The interrupt setup method is the same as in previous examples
 
 .. image:: images/15_media/image35.png
       
-8. 在中断服务程序中，首先清除中断，由于DDR3中的数据已经更新，但Cache中的数据并没有更新，CPU如果想从DDR3中读取数据，需要调用Xil_DCacheInvalidateRang函数，将Cache数据作废，这样CPU就能从DDR3中读取正确的数据。同样也要给出内存地址和长度。
+8. In the interrupt service routine, first clear the interrupt. Since the data in DDR3 has been updated but the Cache data has not, the CPU needs to call the Xil_DCacheInvalidateRange function to invalidate the Cache data before reading from DDR3, so that the CPU can read the correct data from DDR3. The memory address and length also need to be provided.
 
 .. image:: images/15_media/image36.png
       
-9. 之后CPU从DDR3中读取数据进行对比，检验数据的正确性。
+9. The CPU then reads the data from DDR3 for comparison to verify data correctness.
 
 .. image:: images/15_media/image37.png
       
-程序验证
---------
+Program Verification
+--------------------
 
-1. 选择Debug As，采用Debug模式，点击Debug
+1. Select Debug As, use Debug mode, and click Debug
 
 .. image:: images/15_media/image38.png
       
-2. 打开ILA，设置触发条件axi_dma_0_s2mm_introut上升沿，点击运行
+2. Open the ILA, set the trigger condition to the rising edge of axi_dma_0_s2mm_introut, and click Run
 
 .. image:: images/15_media/image39.png
       
-3. 回到Vitis的Debug界面，不用设置断点，点击Resume
+3. Return to the Vitis Debug interface, no need to set breakpoints, click Resume
 
 .. image:: images/15_media/image40.png
       
-4. 此时可以看到ILA已经触发，可以观察采集到的数据。
+4. At this point, you can see that the ILA has been triggered and you can observe the captured data.
 
 .. image:: images/15_media/image41.png
       
-5. 在串口调试工具中可以看到打印信息，中断了两次，并且测试成功
+5. In the serial port debugging tool, you can see the print information showing that interrupts occurred twice and the test was successful
 
 .. image:: images/15_media/image42.png
       
-6. 也可以在Vitis调试中，观察memory信息，设置断点如下图，在中断服务函数中设置断点
+6. You can also observe memory information in the Vitis debugger. Set breakpoints as shown in the figure below, placing a breakpoint in the interrupt service function
 
 .. image:: images/15_media/image43.png
       
-7. 重新Run Configurations，再点击Resume按键运行至断点处，在Memory窗口添加TxBufferPtr和RxBufferPtr，即可观察对比数据
+7. Re-run Run Configurations, then click the Resume button to run to the breakpoint. Add TxBufferPtr and RxBufferPtr in the Memory window to observe and compare the data
 
 .. image:: images/15_media/image44.png
       
-本章小结
---------
+Chapter Summary
+---------------
 
-本章知识点较多，运用了DMA进行内存的访问，并使用DMA中断，结合ILA逻辑分析仪观察数据，CPU读写内存时Cache的处理，大家可以多做些练习，灵活运用DMA。
+This chapter covers many topics, including using DMA for memory access, using DMA interrupts, observing data with the ILA logic analyzer, and handling Cache when the CPU reads and writes memory. Readers are encouraged to practice more and become proficient in using DMA.
 
-在前面讲过AXI总线通过HP口访问PS端的DDR，是一种PS与PL数据交互的方式，而本章的DMA是另外一种PS与PL数据交互方式，本质上这两种方法是一样的，都是访问PS端DDR，不同的是一个PL端代码实现，对于用户来说更灵活可控，缺点是要写代码，对于不熟悉FPGA的人员来说比较困难；DMA的方式控制权主要在PS端，由PS配置DMA的读写，优点是比较直观，但需要比较好的软件功底。
+As discussed earlier, accessing PS-side DDR through the HP port via the AXI bus is one method of data exchange between PS and PL. The DMA in this chapter is another method of PS and PL data exchange. Essentially, both methods are the same - they both access PS-side DDR. The difference is that one is implemented in PL-side code, which gives users more flexibility and control, but the drawback is that it requires writing code, which can be difficult for those unfamiliar with FPGA. The DMA approach gives control mainly to the PS side, where the PS configures DMA reads and writes. The advantage is that it is more intuitive, but it requires a solid software background.
