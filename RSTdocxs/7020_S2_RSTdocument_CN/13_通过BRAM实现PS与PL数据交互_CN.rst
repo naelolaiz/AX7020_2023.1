@@ -1,139 +1,138 @@
-通过BRAM实现PS与PL数据交互
-============================
+PS and PL Data Interaction via BRAM
+====================================
 
-**实验Vivado工程为“bram_test”。**
+**The Vivado project for this experiment is "bram_test".**
 
-有时CPU需要与PL进行小批量的数据交换，可以通过BRAM模块，也就是Block RAM实现此要求。本章通过Zynq的GP
-Master接口读写PL端的BRAM，实现与PL的交互。在本实验中加入了自定义的FPGA程序，并利用AXI4总线进行配置，通知其何时读写BRAM。
+Sometimes the CPU needs to exchange small amounts of data with the PL, which can be achieved through the BRAM module, i.e., Block RAM. This chapter uses the Zynq GP
+Master interface to read and write BRAM on the PL side, enabling interaction with the PL. In this experiment, a custom FPGA program is added and configured via the AXI4 bus to notify it when to read and write BRAM.
 
-以下为本实验原理图，CPU通过AXI BRAM Controller读取BRAM数据，CPU仅配置自定义的PL BRAM Controller的寄存器，不通过它读写数据。
+The following is the schematic of this experiment. The CPU reads BRAM data through the AXI BRAM Controller. The CPU only configures the registers of the custom PL BRAM Controller and does not read or write data through it.
 
 .. image:: images/13_media/image1.png
       
-硬件环境搭建
-------------
+Hardware Environment Setup
+--------------------------
 
-以“ps_hello”为基础，另存为一份工程，并配置打开ZYNQ的中断
+Based on the "ps_hello" project, save a copy of the project and configure ZYNQ interrupts.
 
-1. 首先添加AXI BRAM Controller模块，用于PS端控制BRAM，双击打开配置，连接AXI总线，可用于读写BRAM模块，AXI模式设置为AXI4，数据宽度设置为32位，memory depth不在这里设置，需要在Address Editor里设置。BRAM端口数量设置为1个，用于连接双口RAM的PORTA。不使能ECC功能。
+1. First, add the AXI BRAM Controller module for PS-side BRAM control. Double-click to open the configuration, connect the AXI bus, which can be used to read and write the BRAM module. Set the AXI mode to AXI4 and the data width to 32 bits. The memory depth is not set here; it needs to be set in the Address Editor. Set the number of BRAM ports to 1 for connecting to PORTA of the dual-port RAM. Disable the ECC function.
 
 .. image:: images/13_media/image2.png
       
-由于AXI4总线为字节询址，BRAM数据宽度设置也是32位，同样都是32位数据宽度，因此在映射到BRAM地址时，需要按4字节询址，即去掉最后两位，下图为BRAM控制器与BRAM的映射关系。
+Since the AXI4 bus uses byte addressing and the BRAM data width is also set to 32 bits, both having 32-bit data width, when mapping to BRAM addresses, 4-byte addressing is required, meaning the last two bits are removed. The figure below shows the mapping relationship between the BRAM controller and BRAM.
 
 .. image:: images/13_media/image3.png
       
-2. 添加BRAM模块，BRAM设置如下，有两种模式选择，standalon模式，此模式可以自由配置RAM的数据宽度和深度。BRAM Controller模式，此模式下地址线和数据端口默认为32位，本实验因为用到了BRAM控制器，因此选择BRAM Controller模式。Memory类型选择双口RAM，一端连BRAM控制器，一端连PL RAM控制器。
+2. Add the BRAM module. The BRAM settings are as follows. There are two mode options: standalone mode, which allows free configuration of RAM data width and depth; and BRAM Controller mode, where the address lines and data ports default to 32 bits. Since this experiment uses a BRAM controller, BRAM Controller mode is selected. The memory type is set to dual-port RAM, with one port connected to the BRAM controller and the other to the PL RAM controller.
 
 .. image:: images/13_media/image4.png
             
-3. 添加自定义的PL RAM控制器pl_ram_ctrl，功能很简单，start信号有效后开始读取BRAM的数据，可通过ILA逻辑分析仪观察读取的数据，PL RAM控制器读BRAM结束后，开始向BRAM写数据，写完数据使能intr信号，即中断信号，CPU即可读取BRAM的数据。将PL控制器信号与BRAM的PORTB连接。自定义IP在ip_repo文件夹中。
+3. Add the custom PL RAM controller pl_ram_ctrl. Its function is simple: after the start signal is asserted, it begins reading BRAM data. The read data can be observed through the ILA logic analyzer. After the PL RAM controller finishes reading BRAM, it starts writing data to BRAM. After writing is complete, it asserts the intr signal (interrupt signal), and the CPU can then read the BRAM data. Connect the PL controller signals to PORTB of the BRAM. The custom IP is located in the ip_repo folder.
 
 .. image:: images/13_media/image5.png
       
-如果想添加自定义IP到IP库中，点击IP Catalog，在Vivado Repository右键点击Add Repository
+To add a custom IP to the IP library, click IP Catalog, then right-click on Vivado Repository and select Add Repository.
 
 .. image:: images/13_media/image6.png
       
-找到自定义IP所在文件夹，点击Select
+Navigate to the folder containing the custom IP and click Select.
 
 .. image:: images/13_media/image7.png
       
-跳出窗口，选择IP，点击OK
+A window pops up, select the IP and click OK.
 
 .. image:: images/13_media/image8.png
       
-即可看到，出现了刚添加的IP
+You can see that the newly added IP now appears.
 
 .. image:: images/13_media/image9.png
       
-4. 连接AXI BRAM Controller的BRAM_PORTA到BRAM的PORTA，连接pl_bram_ctrl的BRAM_PORT到BRAM的PORTB。连接pl_bram_ctrl模块的中断信号intr到ZYNQ的中断口。并点击自动连接
+4. Connect the BRAM_PORTA of the AXI BRAM Controller to PORTA of the BRAM, and connect the BRAM_PORT of pl_bram_ctrl to PORTB of the BRAM. Connect the interrupt signal intr of the pl_bram_ctrl module to the interrupt port of ZYNQ. Then click Run Connection Automation.
 
 .. image:: images/13_media/image10.png
       
-5. 在Address Editor里选择BRAM询址大小，如设置4K空间，即可询址BRAM空间为1K深度。
+5. In the Address Editor, select the BRAM addressing size. For example, setting a 4K space allows addressing a BRAM space with 1K depth.
 
 .. image:: images/13_media/image11.png
       
-Block Design添加逻辑分析仪方法
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adding Logic Analyzer in Block Design
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-6. 再介绍一种添加逻辑分析仪的方法，选中BRAM_PORT总线和intr中断，右键选择Debug
+6. Here is another method for adding a logic analyzer. Select the BRAM_PORT bus and the intr interrupt, then right-click and select Debug.
 
 .. image:: images/13_media/image12.png
       
-7. 可以看到总线上多了小昆虫，点击Run Connection Automation，自动连接
+7. You can see small debug icons appear on the bus. Click Run Connection Automation to auto-connect.
 
 .. image:: images/13_media/image13.png
       
-自动添加了一个ILA模块，并且有一个总线接口，一个信号接口
+An ILA module is automatically added with one bus interface and one signal interface.
 
 .. image:: images/13_media/image14.png
       
-8. 保存设计，之后点击Generate Bitsream生成bit文件，并导出Hardware信息。
+8. Save the design, then click Generate Bitstream to generate the bit file and export the Hardware information.
 
 .. image:: images/13_media/image15.png
       
-Vitis程序开发
--------------
+Vitis Program Development
+-------------------------
 
-1. 程序设计流程为：输入起始地址和长度CPU通过BRAM控制器写入BRAM数据通知PL控制器读取BRAM数据PL内部读完后向相同位置写入数据，初始数据由CPU告知写完后使能write_end信号，触发GPIO中断中断读取BRAM数据，打印显示
+1. The program design flow is as follows: Input the start address and length -> CPU writes BRAM data through the BRAM controller -> Notify the PL controller to read BRAM data -> After PL finishes reading internally, it writes data to the same location (initial data is provided by the CPU) -> After writing is complete, assert the write_end signal to trigger a GPIO interrupt -> Interrupt reads BRAM data and prints the results.
 
-2. 进入Vitis后，在Vitis下新建项目，已经准备好程序。程序也比较简单，首先中断设置\ |image1|
+2. After entering Vitis, create a new project in Vitis. The program is already prepared. The program is relatively simple. First, set up the interrupt configuration.\ |image1|
 
-3. While语句中需要输入起始地址和长度，之后调用bram_write函数
+3. In the While loop, the start address and length need to be input, then the bram_write function is called.
 
 .. image:: images/13_media/image17.png
       
-4. 在bram_read_write();函数里先通过BRAM控制器写入数据，数据初值为TEST_START_VAL，之后配置PL RAM控制器参数，有长度，起始地址，初始数据，以及开始信号。并在函数中判断测试长度是否超出BRAM控制器地址范围，如果超出，会报错，需要重新输入地址和长度。
+4. In the bram_read_write() function, data is first written through the BRAM controller with an initial value of TEST_START_VAL. Then the PL RAM controller parameters are configured, including length, start address, initial data, and the start signal. The function also checks whether the test length exceeds the BRAM controller address range. If it does, an error is reported and the address and length need to be re-entered.
 
 .. image:: images/13_media/image18.png
             
-5. 中断服务程序中，BRAM控制器读取BRAM的数据，并打印
+5. In the interrupt service routine, the BRAM controller reads the BRAM data and prints it.
 
 .. image:: images/13_media/image19.png
       
-实验现象
---------
+Experimental Results
+--------------------
 
-1. 打开Putty
+1. Open PuTTY.
 
 .. image:: images/13_media/image20.png
       
-2. 通过Run Configurations下载程序，注意勾选Program FPGA，点击Run
+2. Download the program through Run Configurations. Make sure to check Program FPGA, then click Run.
 
 .. image:: images/13_media/image21.png
       
-3. 打开Hardware Manager，设置将中断信号作为触发信号，选择上升沿触发，点击开始按钮，可以看到hw_ila_1变成了Waiting for trigger状态
+3. Open Hardware Manager, set the interrupt signal as the trigger signal, select rising edge trigger, and click the start button. You can see that hw_ila_1 changes to the Waiting for trigger state.
 
 .. image:: images/13_media/image22.png
       
-4. 在串口软件中，输入起始地址，由于BRAM询址为1K，那么可以设置为0~1023，长度设置为1~1024，注意起始地址+长度不要超过1024，因为超出了询址空间。
+4. In the serial port software, enter the start address. Since the BRAM addressing is 1K, it can be set from 0 to 1023, and the length can be set from 1 to 1024. Note that the start address plus length should not exceed 1024, as this would exceed the addressing space.
 
 .. image:: images/13_media/image23.png
       
-5. 输入的数据为十进制数，输入结束按回车
+5. The input data is in decimal. Press Enter after finishing the input.
 
 .. image:: images/13_media/image24.png
       
-6. 打开ILA逻辑分析仪，可以看到已经触发，首先是PL控制器从BRAM读数据，之后是写数据，可以看到红色为PL读出的BRAM数据，正是CPU写入的数据，从12开始，共10个数据，PL写入的数据为黄色部分从1开始，共10个数据，正与上图CPU读BRAM的数据相符。
+6. Open the ILA logic analyzer. You can see that it has been triggered. First, the PL controller reads data from BRAM, followed by writing data. The red data represents the BRAM data read by the PL, which is exactly the data written by the CPU, starting from 12 with a total of 10 values. The yellow data represents the data written by the PL, starting from 1 with a total of 10 values, which matches the BRAM data read by the CPU shown above.
 
 .. image:: images/13_media/image25.png
       
-7. 同样也能看到中断信号的状态
+7. The interrupt signal status can also be observed.
 
 .. image:: images/13_media/image26.png
       
-8. 如果超出范围，打印错误信息，需要重新输入有效信息
+8. If the range is exceeded, an error message is printed and valid information needs to be re-entered.
 
 .. image:: images/13_media/image27.png
       
-本章小结
---------
+Chapter Summary
+---------------
 
-以上就是PS与PL通过BRAM实现低带宽数据交互的实验，两者通过GP口进行数据互连，可以实现小批量的数据交互。
+This concludes the experiment on low-bandwidth data interaction between PS and PL via BRAM. The two sides communicate data through the GP port, enabling small-batch data exchange.
 
-知识点为逻辑分析仪的使用，中断的使用，自定义IP等。
+Key concepts covered include the use of the logic analyzer, interrupt usage, and custom IP.
 
 .. |image1| image:: images/13_media/image16.png
-      
