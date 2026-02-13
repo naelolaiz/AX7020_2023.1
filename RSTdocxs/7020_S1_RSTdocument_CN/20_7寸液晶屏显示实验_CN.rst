@@ -1,69 +1,69 @@
-7寸液晶屏显示实验
-===================
+7-Inch LCD Display Experiment
+=============================
 
-**实验Vivado工程为“lcd7_test”。**
+**The Vivado project for this experiment is "lcd7_test".**
 
-基于HDMI输出实验，本章介绍7寸液晶屏的显示。
+Based on the HDMI output experiment, this chapter introduces the display on a 7-inch LCD screen.
 
-硬件介绍
---------
+Hardware Introduction
+---------------------
 
-AN970 LCD触摸屏模块由 TFT 液晶屏，电容触摸屏和驱动板组成，详细信息查看 AN970 用户手册。AN970 实物照片如下：
+The AN970 LCD touchscreen module consists of a TFT LCD panel, a capacitive touchscreen, and a driver board. For detailed information, refer to the AN970 user manual. Photos of the AN970 are shown below:
 
 .. image:: images/20_media/image1.png
       
 .. image:: images/20_media/image2.png
       
-1. LCD屏的驱动时序
+1. LCD Drive Timing
 
-LCD屏显示方式从屏幕左上角一点开始，从左向右逐点显示，每显示完一行,再回到屏幕的左边下一行的起始位置，在这期间，需要对行进行消隐，每行结束时，用行同步信号进行同步；LCD的驱动有两种方式，一种为HV模式，另一种为DE模式，这两种模式都能驱动LCD屏，数据在DCLK的上升沿采样。以下为行显示的时序图：
+The LCD display starts from the top-left corner of the screen and displays pixel by pixel from left to right. After completing each row, it returns to the beginning of the next row on the left side. During this period, horizontal blanking is required, and at the end of each row, horizontal sync signals are used for synchronization. There are two LCD driving modes: HV mode and DE mode. Both modes can drive the LCD, and data is sampled on the rising edge of DCLK. The following is the horizontal display timing diagram:
 
 .. image:: images/20_media/image3.png
       
-LCD行的显示时序参数如下表所示：
+The LCD horizontal display timing parameters are shown in the table below:
 
 .. image:: images/20_media/image4.png
       
-当显示完所有的行，形成一帧，用场同步信号进行场同步，并使LCD显示回到屏幕左上方，同时进行场消隐,开始下一帧。以下为列显示的时序图：
+After all rows are displayed to form a frame, the vertical sync signal is used for vertical synchronization, returning the LCD display to the top-left corner of the screen while performing vertical blanking to begin the next frame. The following is the vertical display timing diagram:
 
 .. image:: images/20_media/image5.png
       
-LCD列的显示时序参数如下表所示：
+The LCD vertical display timing parameters are shown in the table below:
 
 .. image:: images/20_media/image6.png
       
-程序设计
---------
+Program Design
+--------------
 
-本章实验其实很简单，与HDMI显示最大的不同是不需要rgb转dvi的模块，输出按照RGB即可。以下是文件结构，去掉了rgb2dvi模块。
+This experiment is actually quite simple. The main difference from the HDMI display is that the RGB-to-DVI module is not needed, and the output can be directly in RGB format. Below is the file structure with the rgb2dvi module removed.
 
 .. image:: images/20_media/image7.png
       
-同时因为液晶屏的分辨率是800x480，需要修改video_define.v的宏定义。
+Since the LCD resolution is 800x480, the macro definitions in video_define.v need to be modified.
 
 .. image:: images/20_media/image8.png
       
-同时将PLL的输出时钟频率修改为33MHz，即800x480的像素时钟。
+The PLL output clock frequency is also changed to 33MHz, which is the pixel clock for 800x480 resolution.
 
 .. image:: images/20_media/image9.png
       
-同时在top.v中例化了ax_pwm，用于调节液晶屏的亮度，设置为200Hz，30%点空比。
+Additionally, ax_pwm is instantiated in top.v to adjust the LCD brightness, set to 200Hz with a 30% duty cycle.
 
 .. image:: images/20_media/image10.png
       
-实验现象
---------
+Experiment Results
+------------------
 
-连接液晶屏到J11扩展口，下载程序，即可看到彩条显示。
+Connect the LCD screen to the J11 expansion port, download the program, and color bars will be displayed.
 
 .. image:: images/20_media/image11.png
       
-同时也准备了字符显示和RTC显示的例程：
+Character display and RTC display examples are also provided:
 
 .. image:: images/20_media/image12.png
       
-字符显示
+Character display
 
 .. image:: images/20_media/image13.png
       
-RTC显示
+RTC display
