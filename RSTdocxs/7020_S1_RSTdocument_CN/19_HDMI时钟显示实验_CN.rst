@@ -1,393 +1,398 @@
-HDMI时钟显示实验
-==================
+HDMI Clock Display Experiment
+==============================
 
-**实验Vivado工程为“hdmi_rtc_char”。**
+**The Vivado project for this experiment is "hdmi_rtc_char".**
 
-本章在字符显示实验基础上，通过阅读DS1302芯片手册，了解DS1302操作时序和相关寄存器，然后设计程序将DS1302 RTC时间通过HDMI显示出来，类似于一个电子钟。
+This chapter builds upon the character display experiment. By reading the DS1302 chip datasheet, we learn about the DS1302 operation timing and related registers, and then design a program to display the DS1302 RTC time via HDMI, similar to a digital clock.
 
-实验原理 
----------
+Experiment Principle
+---------------------
 
-RTC（Real-Time Clock)实时时钟为系统提供一个可靠的时间，并且在断电的情况下，RTC实时时钟也可以通过电池供电，一直运行下去。RTC通过类SPI总线向FPGA传送8位数据（BCD码）。数据包括秒，分，小时，日期，天，月和年。在本实验中我们将读取RTC的时,分,秒的数据并在数码管中显示时间。
+The RTC (Real-Time Clock) provides the system with a reliable time source. Even when the power is off, the RTC can continue running on battery power. The RTC transmits 8-bit data (BCD encoded) to the FPGA via an SPI-like bus. The data includes seconds, minutes, hours, date, day, month, and year. In this experiment, we will read the hours, minutes, and seconds data from the RTC and display the time on the screen.
 
-硬件介绍
---------
+Hardware Introduction
+----------------------
 
-开发板上RTC设计采用DALLAS公司的低功耗实时时钟芯片DS1302, DS1302的VCC2为主电源，VCC1为后备电源。在主电源关闭的情况下，也能可以通过电池保持时钟的连续运行。DS1302外接32.768kHz晶振为RTC电路提供振荡源。 RTC部分的原理图如下图所示：
+The RTC design on the development board uses the low-power real-time clock chip DS1302 from DALLAS. The VCC2 of DS1302 is the main power supply, and VCC1 is the backup power supply. When the main power is off, the battery can maintain continuous clock operation. The DS1302 is connected to an external 32.768kHz crystal oscillator to provide the oscillation source for the RTC circuit. The schematic of the RTC section is shown below:
 
 .. image:: images/19_media/image1.png
       
-DS1302的时序和控制
-------------------
+DS1302 Timing and Control
+---------------------------
 
-写数据时序
-~~~~~~~~~~
+Write Data Timing
+~~~~~~~~~~~~~~~~~~
 
-其接口部分类似于SPI接口，但不同之处是其数据接口是双向的。DS1302芯片写操作的时序图。第一个字节是“访问寄存器的地址”，第二字节是“写数据”。在写操作的时候，都是“上升沿有效”，然而还有一个条件，就是CE（/RST）信号必须拉高。（数据都是从LSB开始发送，亦即是最低位开始至最高位结束）。
+The interface is similar to an SPI interface, but the difference is that its data interface is bidirectional. The timing diagram for the DS1302 chip write operation is as follows. The first byte is the "register access address", and the second byte is the "write data". During write operations, data is valid on the "rising edge", and additionally, the CE (/RST) signal must be pulled high. (Data is sent starting from the LSB, i.e., from the least significant bit to the most significant bit.)
 
 .. image:: images/19_media/image2.png
       
-DS1302写时序
+DS1302 Write Timing
 
-读数据时序
-~~~~~~~~~~
+Read Data Timing
+~~~~~~~~~~~~~~~~~
 
-基本上和写操作的时序图大同小异，区别的地方就是在第二个字节是“读数据”的动作。第二字节读数据开始时，SCLK信号都是下降沿送出数据，这个时候可以使用上升沿读取数据。CE（/RST）信号同样是必须拉高。（第一节数据是从LSB开始输出，第二节数据是从LSB开始读入）。
+The read timing is largely similar to the write timing. The difference is that the second byte involves a "read data" action. At the beginning of reading the second byte, the SCLK signal outputs data on the falling edge, and data can be read on the rising edge. The CE (/RST) signal must also be pulled high. (The first byte of data is output starting from the LSB, and the second byte of data is read in starting from the LSB.)
 
 .. image:: images/19_media/image3.png
       
-DS1302读时序
+DS1302 Read Timing
 
-命令格式和寄存器
-~~~~~~~~~~~~~~~~
+Command Format and Registers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-无论是读操作还是写操作，在时序图中，第一个字节都是“访问寄存器的地址”，然而这一字节数据有自己的格式。
+Whether it is a read or write operation, in the timing diagram, the first byte is always the "register access address", and this byte has its own format.
 
 .. image:: images/19_media/image4.png
       
-BIT 7 固定。 BIT 6 表示是访问寄存器本身，还是访问RAM空间。 BIT 5 到BIT1 表示是寄存器或RAM空间的地址。 BIT 0 表示是访问寄存器本身是写操作，还是读操作。
+BIT 7 is fixed. BIT 6 indicates whether to access the register itself or the RAM space. BIT 5 to BIT 1 represent the address of the register or RAM space. BIT 0 indicates whether the operation on the register is a write or a read.
 
-下图是DS1302的寄存器地址和数据格式
+The figure below shows the DS1302 register addresses and data formats.
 
 .. image:: images/19_media/image5.png
       
-程序设计
---------
+Program Design
+---------------
 
 .. image:: images/19_media/image6.png
 
-DS1302读写设计
-~~~~~~~~~~~~~~
+DS1302 Read/Write Design
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-通过分析DS1302读写时序，可以看出和SPI时序类似，只不过数据输出和输入分时复用了，spi
-master状态机设计，主要完成一个字节spi数据的读写，由于是全双工的，写一个字节的同时也读一个字节。首先空闲状态“IDLE”接收到写请求后进入“DCLK_IDLE”状态，这个状态为spi时钟沿变化保持一定的时间，用来控制spi时钟的周期，然后进入spi时钟沿的变化状态，一个字节上升沿和下降沿一共16个数据沿。在最后一个数据沿进入“LAST_HALF_CYCLE”状态，为让最后一个沿也保持一定的时间，再进入应答状态，完成一次写请求。
+By analyzing the DS1302 read/write timing, it can be seen that it is similar to SPI timing, except that data output and input are time-division multiplexed. The SPI master state machine design mainly handles the read and write of one byte of SPI data. Since it is full-duplex, one byte is read while writing one byte simultaneously. First, in the idle state "IDLE", upon receiving a write request, it enters the "DCLK_IDLE" state. This state holds the SPI clock edge transition for a certain period to control the SPI clock cycle, then enters the SPI clock edge transition state. For one byte, there are 16 data edges in total (rising and falling edges combined). At the last data edge, it enters the "LAST_HALF_CYCLE" state to hold the last edge for a certain period, then enters the acknowledge state to complete one write request.
 
 .. image:: images/19_media/image7.png
       
-spi master模块状态图
+SPI Master Module State Diagram
 
-spi_master模块中模拟了一个spi时钟，在状态机进入到‘DCLK_EDGE’时进行翻转
+The spi_master module simulates an SPI clock, which toggles when the state machine enters the 'DCLK_EDGE' state.
 
 .. code:: verilog
 
  //SPI clock edge counter
  always@(posedge sys_clk or posedge rst)
  begin
- 	if(rst)
- 		clk_edge_cnt <= 5'd0;
- 	else if(state == DCLK_EDGE)
- 		clk_edge_cnt <= clk_edge_cnt + 5'd1;
- 	else if(state == IDLE)
- 		clk_edge_cnt <= 5'd0;
+ if(rst)
+ clk_edge_cnt <= 5'd0;
+ else if(state == DCLK_EDGE)
+ clk_edge_cnt <= clk_edge_cnt + 5'd1;
+ else if(state == IDLE)
+ clk_edge_cnt <= 5'd0;
  end
 
 +-------------+-------+------------------------------------------------+
-| 信号名称    | 方向  | 说明                                           |
+| Signal Name | Dir   | Description                                    |
 +=============+=======+================================================+
-| sys_clk     | in    | 时钟输入                                       |
+| sys_clk     | in    | Clock input                                    |
 +-------------+-------+------------------------------------------------+
-| rst         | in    | 异步复位输入，高复位                           |
+| rst         | in    | Asynchronous reset input, active high          |
 +-------------+-------+------------------------------------------------+
-| nCS         | out   | spi 片选信号，等于nCS_ctrl。                   |
+| nCS         | out   | SPI chip select signal, equals nCS_ctrl        |
 +-------------+-------+------------------------------------------------+
-| DCLK        | out   | spi 串行时钟                                   |
+| DCLK        | out   | SPI serial clock                               |
 +-------------+-------+------------------------------------------------+
-| MOSI        | out   | spi串行数据输出                                |
+| MOSI        | out   | SPI serial data output                         |
 +-------------+-------+------------------------------------------------+
-| MISO        | in    | spi串行数据输入                                |
+| MISO        | in    | SPI serial data input                          |
 +-------------+-------+------------------------------------------------+
-| CPOL        | in    | Clock Polarity，spi时钟的极性                  |
+| CPOL        | in    | Clock Polarity, SPI clock polarity             |
 |             |       |                                                |
-|             |       | 0：空闲状态为0                                 |
+|             |       | 0: Idle state is 0                             |
 |             |       |                                                |
-|             |       | 1：空闲状态为1                                 |
+|             |       | 1: Idle state is 1                             |
 +-------------+-------+------------------------------------------------+
-| CPHA        | in    |    Clock Phase，spi时钟的相位，                |
+| CPHA        | in    | Clock Phase, SPI clock phase                   |
 |             |       |                                                |
-|             |       |    0：第一个沿采样，                           |
+|             |       | 0: Sample on the first edge                   |
 |             |       |                                                |
-|             |       |    1：第二个沿采样                             |
+|             |       | 1: Sample on the second edge                  |
 +-------------+-------+------------------------------------------------+
-| nCS_ctrl    | in    | nCS控制                                        |
+| nCS_ctrl    | in    | nCS control                                    |
 +-------------+-------+------------------------------------------------+
-| clk_div     | in    | spi时钟频率控制                                |
+| clk_div     | in    | SPI clock frequency control                    |
 |             |       |                                                |
-|             |       | spi时钟=系统时钟/(2*（2+ clk_div）)            |
+|             |       | SPI clock = sys clock / (2*(2+clk_div))        |
 |             |       |                                                |
-|             |       | clk_div                                        |
-|             |       | 最小值可以为0，当为0时，spi时钟是系统时钟的1/4 |
+|             |       | clk_div minimum value is 0; when 0,            |
+|             |       | SPI clock is 1/4 of the system clock           |
 +-------------+-------+------------------------------------------------+
-| wr_req      | in    | 写一个字节请求                                 |
+| wr_req      | in    | Write one byte request                         |
 +-------------+-------+------------------------------------------------+
-| wr_ack      | out   | 写应答，高有效                                 |
+| wr_ack      | out   | Write acknowledge, active high                 |
 +-------------+-------+------------------------------------------------+
-| data_in     | in    | 数据                                           |
+| data_in     | in    | Data                                           |
 +-------------+-------+------------------------------------------------+
-| data_out    | out   | 返回的数据，当写应答时有效                     |
+| data_out    | out   | Returned data, valid on write acknowledge      |
 +-------------+-------+------------------------------------------------+
 
-spi master端口说明
+SPI Master Port Description
 
-ds1302_io模块完成DS1302寄存器读写控制，状态机如下图所示。
+The ds1302_io module handles DS1302 register read/write control. The state machine is shown in the figure below.
 
-状态“S_IDLE”空闲状态，收到读写寄存器请求写进入“S_CE_HIGH”状态，将CE拉高，然后根据请求类型，进入读（S_READ）或写状态(S_WRITE)。
+In the "S_IDLE" idle state, upon receiving a register read/write request, it enters the "S_CE_HIGH" state to pull CE high, then enters either the read (S_READ) or write (S_WRITE) state based on the request type.
 
-“S_WRITE”状态下一个状态进入写地址状态“S_WRITE_ADDR”,再进入写数据状态“S_WRITE_DATA”，完成一个寄存器的写入，最后应答，拉低CE。
+In the "S_WRITE" state, the next state transitions to the write address state "S_WRITE_ADDR", then to the write data state "S_WRITE_DATA" to complete writing one register, and finally acknowledges and pulls CE low.
 
-“S_READ”状态下一个状态进入读地址状态“S_READ_ADDR”,再进入读数据状态“S_READ_DATA”，完成一个寄存器的读取，最后应答，拉低CE。
+In the "S_READ" state, the next state transitions to the read address state "S_READ_ADDR", then to the read data state "S_READ_DATA" to complete reading one register, and finally acknowledges and pulls CE low.
 
 .. image:: images/19_media/image8.png
       
-ds1302_io状态机
+ds1302_io State Machine
 
 +---------------+--------+---------------------------------------------+
-| 信号名称      | 方向   | 说明                                        |
+| Signal Name   | Dir    | Description                                 |
 +===============+========+=============================================+
-| clk           | in     | 时钟输入                                    |
+| clk           | in     | Clock input                                 |
 +---------------+--------+---------------------------------------------+
-| rst           | in     | 异步复位输入，高复位                        |
+| rst           | in     | Asynchronous reset input, active high       |
 +---------------+--------+---------------------------------------------+
-| ds1302_ce     | out    | DS1302 CE，高有效                           |
+| ds1302_ce     | out    | DS1302 CE, active high                      |
 +---------------+--------+---------------------------------------------+
-| ds1302_sclk   | out    | DS1302串行时钟                              |
+| ds1302_sclk   | out    | DS1302 serial clock                         |
 +---------------+--------+---------------------------------------------+
-| ds1302_io     | inout  | DS1302数据                                  |
+| ds1302_io     | inout  | DS1302 data                                 |
 +---------------+--------+---------------------------------------------+
-| cmd_read      | in     | 读寄存器请求，发出请求时准备好地址          |
+| cmd_read      | in     | Read register request, address must be      |
+|               |        | ready when the request is issued            |
 +---------------+--------+---------------------------------------------+
-| cmd_write     | in     | 写寄存器请求，发出请求时准备好地址和数据    |
+| cmd_write     | in     | Write register request, address and data    |
+|               |        | must be ready when the request is issued    |
 +---------------+--------+---------------------------------------------+
-| cmd_read_ack  | out    | 读寄存器应答，应答时读取数据有效            |
+| cmd_read_ack  | out    | Read register acknowledge, read data is     |
+|               |        | valid upon acknowledge                      |
 +---------------+--------+---------------------------------------------+
-| cmd_write_ack | out    | 写寄存器应答                                |
+| cmd_write_ack | out    | Write register acknowledge                  |
 +---------------+--------+---------------------------------------------+
-| read_addr     | in     | 读寄存器地址                                |
+| read_addr     | in     | Read register address                       |
 +---------------+--------+---------------------------------------------+
-| write_addr    | in     | 写寄存器地址                                |
+| write_addr    | in     | Write register address                      |
 +---------------+--------+---------------------------------------------+
-| read_data     | out    | 读出的数据                                  |
+| read_data     | out    | Data read out                               |
 +---------------+--------+---------------------------------------------+
-| write_data    | in     | 写寄存器数据                                |
+| write_data    | in     | Write register data                         |
 +---------------+--------+---------------------------------------------+
 
-ds1302_io端口
+ds1302_io Ports
 
-ds1302模块主要完成时间寄存器的读写控制，状态机状态较为简单。
+The ds1302 module mainly handles the read/write control of time registers. The state machine is relatively simple.
 
 .. image:: images/19_media/image9.png
       
-ds1302模块状态机
+ds1302 Module State Machine
 
 +-------+---+---------------------------------------------------------+
-| 信号  | 方 | 说明                                                   |
-| 名称  | 向 |                                                        |
+| Signal| D | Description                                             |
+| Name  | i |                                                         |
+|       | r |                                                         |
 +=======+===+=========================================================+
-| clk   | i | 时钟输入                                                |
+| clk   | i | Clock input                                             |
 |       | n |                                                         |
 +-------+---+---------------------------------------------------------+
-| rst   | i | 异步复位输入，高复位                                    |
+| rst   | i | Asynchronous reset input, active high                   |
 |       | n |                                                         |
 +-------+---+---------------------------------------------------------+
-| ds13  | o | DS1302 CE，高有效                                       |
+| ds13  | o | DS1302 CE, active high                                  |
 | 02_ce | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| d     | o | DS1302串行时钟                                          |
+| d     | o | DS1302 serial clock                                     |
 | s1302 | u |                                                         |
 | _sclk | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| ds13  | i | DS1302数据                                              |
+| ds13  | i | DS1302 data                                             |
 | 02_io | n |                                                         |
 |       | o |                                                         |
 |       | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| writ  | i | ds1302写时间请求，请求                                  |
-| e_tim | n | 发出时，时间数据write_second、write_minute、write_hour  |
-| e_req |   | 、write_date、write_month、write_week、write_year要有效 |
+| writ  | i | ds1302 write time request; when the request is issued,  |
+| e_tim | n | time data write_second, write_minute, write_hour,       |
+| e_req |   | write_date, write_month, write_week, write_year must    |
+|       |   | be valid                                                |
 +-------+---+---------------------------------------------------------+
-| writ  | o | 写时间请求应答                                          |
+| writ  | o | Write time request acknowledge                          |
 | e_tim | u |                                                         |
 | e_ack | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| wr    | i | 写时间：秒，BCD码，00-59                                |
+| wr    | i | Write time: seconds, BCD encoded, 00-59                 |
 | ite_s | n |                                                         |
 | econd |   |                                                         |
 +-------+---+---------------------------------------------------------+
-| wr    | i | 写时间：分，BCD码,，00-59                               |
+| wr    | i | Write time: minutes, BCD encoded, 00-59                 |
 | ite_m | n |                                                         |
 | inute |   |                                                         |
 +-------+---+---------------------------------------------------------+
-| write | i | 写时间：时，BCD码,，00-23                               |
+| write | i | Write time: hours, BCD encoded, 00-23                   |
 | _hour | n |                                                         |
 +-------+---+---------------------------------------------------------+
-| write | i | 写时间：日，BCD码,，01-31                               |
+| write | i | Write time: date, BCD encoded, 01-31                    |
 | _date | n |                                                         |
 +-------+---+---------------------------------------------------------+
-| write | i | 写时间：月，BCD码,，01-12                               |
+| write | i | Write time: month, BCD encoded, 01-12                   |
 | _     | n |                                                         |
 | month |   |                                                         |
 +-------+---+---------------------------------------------------------+
-| write | i | 写时间：周，BCD码,，01-07                               |
+| write | i | Write time: day of week, BCD encoded, 01-07             |
 | _week | n |                                                         |
 +-------+---+---------------------------------------------------------+
-| write | i | 写时间：年，BCD码,，00-99                               |
+| write | i | Write time: year, BCD encoded, 00-99                    |
 | _year | n |                                                         |
 +-------+---+---------------------------------------------------------+
-| rea   | i | 读时间请求                                              |
+| rea   | i | Read time request                                       |
 | d_tim | n |                                                         |
 | e_req |   |                                                         |
 +-------+---+---------------------------------------------------------+
-| rea   | o | 读时间请求应答                                          |
+| rea   | o | Read time request acknowledge                           |
 | d_tim | u |                                                         |
 | e_ack | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| r     | o | 读时间：秒，BCD码，00-59                                |
+| r     | o | Read time: seconds, BCD encoded, 00-59                  |
 | ead_s | u |                                                         |
 | econd | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| r     | o | 读时间：分，BCD码,，00-59                               |
+| r     | o | Read time: minutes, BCD encoded, 00-59                  |
 | ead_m | u |                                                         |
 | inute | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| read  | o | 读时间：时，BCD码,，00-23                               |
+| read  | o | Read time: hours, BCD encoded, 00-23                    |
 | _hour | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| read  | o | 读时间：日，BCD码,，01-31                               |
+| read  | o | Read time: date, BCD encoded, 01-31                     |
 | _date | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| read_m| o | 读时间：月，BCD码,，01-12                               |
+| read_m| o | Read time: month, BCD encoded, 01-12                    |
 | onth  | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| read  | o | 读时间：周，BCD码,，01-07                               |
+| read  | o | Read time: day of week, BCD encoded, 01-07              |
 | _week | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
-| read  | o | 读时间：年，BCD码,，00-99                               |
+| read  | o | Read time: year, BCD encoded, 00-99                     |
 | _year | u |                                                         |
 |       | t |                                                         |
 +-------+---+---------------------------------------------------------+
 
-ds1302模块端口
+ds1302 Module Ports
 
-ds1302_test模块主要CH状态检测，CH位于秒寄存器的BIT7位，上电后首先读取时间，判断秒寄存器的CH状态，如果为高，表示DS1302暂停，状态机进入“S_WRITE_CH”，将CH写0，并将一个初始时间写入，然后循环不断的读取时间寄存器。
+The ds1302_test module mainly performs CH status detection. CH is located at BIT 7 of the seconds register. After power-up, it first reads the time, checks the CH status of the seconds register. If it is high, it means the DS1302 is halted, and the state machine enters "S_WRITE_CH" to write 0 to CH and write an initial time. Then it continuously reads the time registers in a loop.
 
 .. image:: images/19_media/image10.png
       
-ds1302_test状态机
+ds1302_test State Machine
 
 +---------------+--------+--------------------------------------------+
-| 信号名称      | 方向   | 说明                                       |
+| Signal Name   | Dir    | Description                                |
 +===============+========+============================================+
-| clk           | in     | 时钟输入                                   |
+| clk           | in     | Clock input                                |
 +---------------+--------+--------------------------------------------+
-| rst           | in     | 异步复位输入，高复位                       |
+| rst           | in     | Asynchronous reset input, active high      |
 +---------------+--------+--------------------------------------------+
-| ds1302_ce     | out    | DS1302 CE，高有效                          |
+| ds1302_ce     | out    | DS1302 CE, active high                     |
 +---------------+--------+--------------------------------------------+
-| ds1302_sclk   | out    | DS1302串行时钟                             |
+| ds1302_sclk   | out    | DS1302 serial clock                        |
 +---------------+--------+--------------------------------------------+
-| ds1302_io     | inout  | DS1302数据                                 |
+| ds1302_io     | inout  | DS1302 data                                |
 +---------------+--------+--------------------------------------------+
-| read_second   | out    | 时间：秒，BCD码，00-59                     |
+| read_second   | out    | Time: seconds, BCD encoded, 00-59          |
 +---------------+--------+--------------------------------------------+
-| read_minute   | out    | 时间：分，BCD码，00-59                     |
+| read_minute   | out    | Time: minutes, BCD encoded, 00-59          |
 +---------------+--------+--------------------------------------------+
-| read_hour     | out    | 时间：时，BCD码，00-23                     |
+| read_hour     | out    | Time: hours, BCD encoded, 00-23            |
 +---------------+--------+--------------------------------------------+
-| read_date     | out    | 时间：日，BCD码，01-31                     |
+| read_date     | out    | Time: date, BCD encoded, 01-31             |
 +---------------+--------+--------------------------------------------+
-| read_month    | out    | 时间：月，BCD码，01-12                     |
+| read_month    | out    | Time: month, BCD encoded, 01-12            |
 +---------------+--------+--------------------------------------------+
-| read_week     | out    | 时间：周，BCD码，01-07                     |
+| read_week     | out    | Time: day of week, BCD encoded, 01-07      |
 +---------------+--------+--------------------------------------------+
-| read_year     | out    | 时间：年，BCD码，00-99                     |
+| read_year     | out    | Time: year, BCD encoded, 00-99             |
 +---------------+--------+--------------------------------------------+
 
-ds1302_test端口
+ds1302_test Ports
 
-字符叠加设计
-~~~~~~~~~~~~
+Character Overlay Design
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-参考前面字符叠加实验，由于前面的实验字符是静态的，而本节需要将RTC的数据动态的显示出来，因此一个字符显示区域的内容是可变的，我们需要做字符库。也就是0~9以及分隔符”:”，考虑到字符较多，如果放在一个ROM里不容易调用。因此不再用例化ROM的方式，而是采用case语句制作字符库char_repo.v。比如在下面的图中即是数字0的字符库表达式。
+Referring to the previous character overlay experiment, since the characters in the previous experiment were static, and this section requires dynamically displaying the RTC data, the content of a character display area needs to be variable. We need to create a character library containing digits 0-9 and the separator ":". Considering the large number of characters, placing them in a single ROM would make it difficult to access. Therefore, instead of instantiating a ROM, we use case statements to create the character library in char_repo.v. For example, the figure below shows the character library expression for the digit 0.
 
 .. image:: images/19_media/image11.png
       
-至于字符库的数据也是由“FPGA字模提取”软件产生的，点阵宽x高为16x32，也就是64个字节。
+The character library data is generated by the "FPGA Font Extraction" software, with a dot matrix width x height of 16x32, which is 64 bytes.
 
 .. image:: images/19_media/image12.png
       
-程序中的char_addr_sel用来选择用哪个字符，0~9对应数字0~9，10对应“：”
+In the program, char_addr_sel is used to select which character to use. 0-9 correspond to digits 0-9, and 10 corresponds to ":".
 
 .. image:: images/19_media/image13.png
       
 +----------------+--------+--------------------------------------------+
-| 信号名称       | 方向   | 说明                                       |
+| Signal Name    | Dir    | Description                                |
 +================+========+============================================+
-| clk            | in     | 时钟输入                                   |
+| clk            | in     | Clock input                                |
 +----------------+--------+--------------------------------------------+
-| char_addr_sel  | in     | 用来选择字符，0~9对应数字0~9，10对应”:”    |
+| char_addr_sel  | in     | Select character, 0-9 for digits 0-9,     |
+|                |        | 10 for ":"                                 |
 +----------------+--------+--------------------------------------------+
-| char_addr      | in     | 字符数据地址                               |
+| char_addr      | in     | Character data address                     |
 +----------------+--------+--------------------------------------------+
-| char_data      | out    | 字符数据                                   |
+| char_data      | out    | Character data                             |
 +----------------+--------+--------------------------------------------+
 
-char_repo模块接口信号
+char_repo Module Interface Signals
 
-rtc_osd.v是用来将RTC的数据叠加到彩条上的，并设置了以下一些参数，由于一个字符宽度是16，也就是16个像素点，因此将两个字符间隔设置为16。
+The rtc_osd.v module is used to overlay the RTC data onto the color bar, and sets the following parameters. Since one character width is 16 pixels, the spacing between two characters is set to 16.
 
 .. image:: images/19_media/image14.png
       
-由于时分秒加上分隔符共8个字符，因此产生出八个显示有效区域
+Since the hours, minutes, seconds, and separators total 8 characters, eight valid display areas are generated.
 
 .. image:: images/19_media/image15.png
       
-根据RTC数据值，进行字符选择信号的译码
+The character selection signal is decoded based on the RTC data values.
 
 .. image:: images/19_media/image16.png
       
 +-------------------+-------+------------------------------------------+
-| 信号名称          | 方向  | 说明                                     |
+| Signal Name       | Dir   | Description                              |
 +===================+=======+==========================================+
-| rst_n             | in    | 异步复位输入,低复位                      |
+| rst_n             | in    | Asynchronous reset input, active low     |
 +-------------------+-------+------------------------------------------+
-| pclk              | in    | 外部时钟输入                             |
+| pclk              | in    | External clock input                     |
 +-------------------+-------+------------------------------------------+
-| rtc_data          | In    | RTC数据，24bit，分别为时分秒数据         |
+| rtc_data          | In    | RTC data, 24-bit, hours/minutes/seconds  |
 +-------------------+-------+------------------------------------------+
-| i_hs              | in    | 行同步信号                               |
+| i_hs              | in    | Horizontal sync signal                   |
 +-------------------+-------+------------------------------------------+
-| i_vs              | in    | 场同步信号                               |
+| i_vs              | in    | Vertical sync signal                     |
 +-------------------+-------+------------------------------------------+
-| i_de              | in    | 数据有效信号                             |
+| i_de              | in    | Data enable signal                       |
 +-------------------+-------+------------------------------------------+
-| i_data            | in    | color_bar数据                            |
+| i_data            | in    | color_bar data                           |
 +-------------------+-------+------------------------------------------+
-| o_hs              | out   | 输出行同步信号                           |
+| o_hs              | out   | Output horizontal sync signal            |
 +-------------------+-------+------------------------------------------+
-| o_vs              | out   | 输出场同步信号                           |
+| o_vs              | out   | Output vertical sync signal              |
 +-------------------+-------+------------------------------------------+
-| o_de              | out   | 输出数据有效信号                         |
+| o_de              | out   | Output data enable signal                |
 +-------------------+-------+------------------------------------------+
-| o_data            | out   | 输出数据                                 |
+| o_data            | out   | Output data                              |
 +-------------------+-------+------------------------------------------+
 
-rtc_osd模块信号
+rtc_osd Module Signals
 
-实验现象
---------
+Experiment Result
+------------------
 
-连接好下载线，HDMI线，将程序下载到板子上以后，可以看到HDMI显示器背景为彩条，在左上方会显示时间，每秒会变一下。
+After connecting the download cable and HDMI cable and downloading the program to the board, you can see that the HDMI display background shows color bars, and the time is displayed in the upper left corner, updating every second.
 
 .. image:: images/19_media/image17.png
       
-AX7020/AX7010硬件连接图
+AX7020/AX7010 Hardware Connection Diagram
 
-纽扣电池型号为CR1220，安装时注意正极朝上，取下时用镊子拨动黄色弹片，即可弹出电池。
+The button cell battery model is CR1220. When installing, make sure the positive side faces up. To remove it, use tweezers to push the yellow spring clip and the battery will pop out.
 
 .. image:: images/19_media/image18.png
       
